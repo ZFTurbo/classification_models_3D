@@ -56,9 +56,10 @@ Training with single NVIDIA 1080Ti (11 GB) worked with:
  * segmentation models 3D
  * driven_data_repo - code for training and inference on real dataset
  
-### Potential problems
+### Unresolved problems
 
-There is no DepthwiseConv3D layer in keras, so repo used custom layer from [this repo]( https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) by [@alexandrosstergiou]( https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) which can be slow. Also it doesn't work in tf.keras, so you can't use MobileNets in there. 
+* There is no DepthwiseConv3D layer in keras, so repo used custom layer from [this repo]( https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) by [@alexandrosstergiou]( https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) which can be slow. Also it doesn't work in tf.keras, so you can't use MobileNets in there. 
+* There is no imagenet weights for 'inceptionresnetv2' and 'inceptionv3'.
  
 ### Description
  
