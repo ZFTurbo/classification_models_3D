@@ -52,8 +52,8 @@ Training with single NVIDIA 1080Ti (11 GB) worked with:
 ### Related repositories
 
  * [https://github.com/qubvel/classification_models](https://github.com/qubvel/classification_models) - original 2D repo
- * volumentations - 3D augmentations
- * segmentation models 3D
+ * [volumentations](https://github.com/ZFTurbo/volumentations) - 3D augmentations
+ * segmentation models 3D - models for segmentation in 3D (soon)
  * driven_data_repo - code for training and inference on real dataset
  
 ### Unresolved problems
