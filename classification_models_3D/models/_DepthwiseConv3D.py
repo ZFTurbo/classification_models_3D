@@ -1,17 +1,175 @@
 # Implementation: https://github.com/alexandrosstergiou/keras-DepthwiseConv3D
 
-from keras_applications import imagenet_utils
-from keras import backend as K
-from keras import initializers
-from keras import regularizers
-from keras import constraints
-from keras import layers
-from keras.layers import InputSpec
-from keras.legacy.interfaces import conv3d_args_preprocessor, generate_legacy_interface
-from keras.layers import Conv3D
-from keras.backend.tensorflow_backend import _preprocess_padding, _preprocess_conv3d_input
-from keras.utils import conv_utils
 import tensorflow as tf
+try:
+    from keras_applications import imagenet_utils
+    from keras import backend as K
+    from keras import initializers
+    from keras import regularizers
+    from keras import constraints
+    from keras import layers
+    from keras.engine import InputSpec
+    from keras.legacy.interfaces import conv3d_args_preprocessor, generate_legacy_interface
+    from keras.layers import Conv3D
+    from keras.backend.tensorflow_backend import _preprocess_padding, _preprocess_conv3d_input
+    from keras.utils import conv_utils
+except:
+    from tensorflow.keras import backend as K
+    from tensorflow.keras import initializers
+    from tensorflow.keras import regularizers
+    from tensorflow.keras import constraints
+    from tensorflow.keras import layers
+    from tensorflow.keras.layers import Conv3D
+    from tensorflow.keras.layers import InputSpec
+    # from tensorflow.keras.utils import conv_utils
+    import tensorflow.keras.utils as conv_utils
+    import six
+    import warnings
+    from distutils.version import StrictVersion
+
+
+    def generate_legacy_interface(allowed_positional_args=None,
+                                  conversions=None,
+                                  preprocessor=None,
+                                  value_conversions=None):
+        allowed_positional_args = allowed_positional_args or []
+        conversions = conversions or []
+        value_conversions = value_conversions or []
+
+        def legacy_support(func):
+            @six.wraps(func)
+            def wrapper(*args, **kwargs):
+                layer_name = args[0].__class__.__name__
+                if preprocessor:
+                    args, kwargs, converted = preprocessor(args, kwargs)
+                else:
+                    converted = []
+                if len(args) > len(allowed_positional_args) + 1:
+                    raise TypeError('Layer `' + layer_name +
+                                    '` can accept only ' +
+                                    str(len(allowed_positional_args)) +
+                                    ' positional arguments (' +
+                                    str(allowed_positional_args) + '), but '
+                                                                   'you passed the following '
+                                                                   'positional arguments: ' +
+                                    str(args[1:]))
+                for key in value_conversions:
+                    if key in kwargs:
+                        old_value = kwargs[key]
+                        if old_value in value_conversions[key]:
+                            kwargs[key] = value_conversions[key][old_value]
+                for old_name, new_name in conversions:
+                    if old_name in kwargs:
+                        value = kwargs.pop(old_name)
+                        kwargs[new_name] = value
+                        converted.append((new_name, old_name))
+                if converted:
+                    signature = '`' + layer_name + '('
+                    for value in args[1:]:
+                        if isinstance(value, six.string_types):
+                            signature += '"' + value + '"'
+                        else:
+                            signature += str(value)
+                        signature += ', '
+                    for i, (name, value) in enumerate(kwargs.items()):
+                        signature += name + '='
+                        if isinstance(value, six.string_types):
+                            signature += '"' + value + '"'
+                        else:
+                            signature += str(value)
+                        if i < len(kwargs) - 1:
+                            signature += ', '
+                    signature += ')`'
+                    warnings.warn('Update your `' + layer_name +
+                                  '` layer call to the Keras 2 API: ' + signature)
+                return func(*args, **kwargs)
+
+            return wrapper
+
+        return legacy_support
+
+
+    def conv3d_args_preprocessor(args, kwargs):
+        if len(args) > 5:
+            raise TypeError('Layer can receive at most 4 positional arguments.')
+        if len(args) == 5:
+            if isinstance(args[2], int) and isinstance(args[3], int) and isinstance(args[4], int):
+                kernel_size = (args[2], args[3], args[4])
+                args = [args[0], args[1], kernel_size]
+        elif len(args) == 4 and isinstance(args[3], int):
+            if isinstance(args[2], int) and isinstance(args[3], int):
+                new_keywords = ['padding', 'strides', 'data_format']
+                for kwd in new_keywords:
+                    if kwd in kwargs:
+                        raise ValueError(
+                            'It seems that you are using the Keras 2 '
+                            'and you are passing both `kernel_size` and `strides` '
+                            'as integer positional arguments. For safety reasons, '
+                            'this is disallowed. Pass `strides` '
+                            'as a keyword argument instead.')
+            if 'kernel_dim3' in kwargs:
+                kernel_size = (args[2], args[3], kwargs.pop('kernel_dim3'))
+                args = [args[0], args[1], kernel_size]
+        elif len(args) == 3:
+            if 'kernel_dim2' in kwargs and 'kernel_dim3' in kwargs:
+                kernel_size = (args[2],
+                               kwargs.pop('kernel_dim2'),
+                               kwargs.pop('kernel_dim3'))
+                args = [args[0], args[1], kernel_size]
+        elif len(args) == 2:
+            if 'kernel_dim1' in kwargs and 'kernel_dim2' in kwargs and 'kernel_dim3' in kwargs:
+                kernel_size = (kwargs.pop('kernel_dim1'),
+                               kwargs.pop('kernel_dim2'),
+                               kwargs.pop('kernel_dim3'))
+                args = [args[0], args[1], kernel_size]
+        return args, kwargs, [('kernel_size', 'kernel_dim*')]
+
+
+    def _preprocess_padding(padding):
+        """Convert keras' padding to tensorflow's padding.
+
+        # Arguments
+            padding: string, `"same"` or `"valid"`.
+
+        # Returns
+            a string, `"SAME"` or `"VALID"`.
+
+        # Raises
+            ValueError: if `padding` is invalid.
+        """
+        if padding == 'same':
+            padding = 'SAME'
+        elif padding == 'valid':
+            padding = 'VALID'
+        else:
+            raise ValueError('Invalid padding: ' + str(padding))
+        return padding
+
+
+    def dtype(x):
+        return x.dtype.base_dtype.name
+
+
+    def _has_nchw_support():
+        return True
+
+
+    def _preprocess_conv3d_input(x, data_format):
+        """Transpose and cast the input before the conv3d.
+
+        # Arguments
+            x: input tensor.
+            data_format: string, `"channels_last"` or `"channels_first"`.
+
+        # Returns
+            A tensor.
+        """
+        # tensorflow doesn't support float64 for conv layer before 1.8.0
+        if (dtype(x) == 'float64' and
+                StrictVersion(tf.__version__.split('-')[0]) < StrictVersion('1.8.0')):
+            x = tf.cast(x, 'float32')
+        tf_data_format = 'NDHWC'
+        return x, tf_data_format
 
 
 def depthwise_conv3d_args_preprocessor(args, kwargs):
