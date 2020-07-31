@@ -13,6 +13,7 @@ except:
     from classification_models.tfkeras import Classifiers as Classifiers_2D
     from classification_models_3D.tfkeras import Classifiers as Classifiers_3D
     print('Use TF keras...')
+import os
 import glob
 import hashlib
 
