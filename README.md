@@ -37,7 +37,7 @@ All possible nets for `Classifiers.get()` method: `'resnet18, 'resnet34', 'resne
 
 ### Convert imagenet weights (2D -> 3D)
 
-Code to convert 2D imagenet weights to 3D variant is available here: [](). Weights were obtained with TF2, but works OK with Keras + TF1 as well.
+Code to convert 2D imagenet weights to 3D variant is available here: [convert_imagenet_weights_to_3D_models.py](convert_imagenet_weights_to_3D_models.py). Weights were obtained with TF2, but works OK with Keras + TF1 as well.
 
 ### How to choose input shape
 
@@ -58,11 +58,11 @@ Training with single NVIDIA 1080Ti (11 GB) worked with:
  
 ### Unresolved problems
 
-* There is no DepthwiseConv3D layer in keras, so repo used custom layer from [this repo](https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) by [@alexandrosstergiou]( https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) which can be slow. Also it doesn't work in tf.keras, so you can't use MobileNets in there. 
+* There is no DepthwiseConv3D layer in keras, so repo used custom layer from [this repo](https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) by [@alexandrosstergiou]( https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) which can be slower than native implementation. 
 * There is no imagenet weights for 'inceptionresnetv2' and 'inceptionv3'.
  
 ### Description
  
-This code was used to get Nth place in [DrivenData: Advance Alzheimer’s Research with Stall Catchers](https://www.drivendata.org/competitions/65/clog-loss-alzheimers-research/leaderboard/) competition.
+This code was used to get 1st place in [DrivenData: Advance Alzheimer’s Research with Stall Catchers](https://www.drivendata.org/competitions/65/clog-loss-alzheimers-research/leaderboard/) competition.
  
 More details on ArXiv: (soon)
