@@ -18,6 +18,10 @@ This repository is based on great [classification_models](https://github.com/qub
 - [MobileNet](https://arxiv.org/pdf/1704.04861.pdf)
 - [MobileNet v2](https://arxiv.org/abs/1801.04381)
 
+### Installation 
+
+`pip install classification-models-3D`
+
 ### Examples 
 
 ##### Loading model with `imagenet` weights:
