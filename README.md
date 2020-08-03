@@ -41,7 +41,7 @@ Code to convert 2D imagenet weights to 3D variant is available here: [convert_im
 
 ### How to choose input shape
 
-If initial 2D model had shape (512, 512, 3) then you can use shape (D, H, W, 3) where D*H*W ~= 224*224, so something like
+If initial 2D model had shape (512, 512, 3) then you can use shape (D, H, W, 3) where `D * H * W ~= 512*512`, so something like
 (64, 64, 64, 3) will be ok.
 
 Training with single NVIDIA 1080Ti (11 GB) worked with:
@@ -54,7 +54,7 @@ Training with single NVIDIA 1080Ti (11 GB) worked with:
  * [https://github.com/qubvel/classification_models](https://github.com/qubvel/classification_models) - original 2D repo
  * [volumentations](https://github.com/ZFTurbo/volumentations) - 3D augmentations
  * [segmentation models 3D](https://github.com/ZFTurbo/segmentation_models_3D) - models for segmentation in 3D (soon)
- * driven_data_repo - code for training and inference on real dataset
+ * driven_data_repo - code for training and inference on real dataset (soon)
  
 ### Unresolved problems
 
