@@ -19,15 +19,6 @@ from .. import get_submodules_from_kwargs
 from keras_applications import imagenet_utils
 
 
-WEIGHTS_PATH = (
-    'https://github.com/fchollet/deep-learning-models/'
-    'releases/download/v0.5/'
-    'inception_v3_weights_tf_dim_ordering_tf_kernels.h5')
-WEIGHTS_PATH_NO_TOP = (
-    'https://github.com/fchollet/deep-learning-models/'
-    'releases/download/v0.5/'
-    'inception_v3_weights_tf_dim_ordering_tf_kernels_notop.h5')
-
 backend = None
 layers = None
 models = None
@@ -365,19 +356,7 @@ def InceptionV3(include_top=True,
 
     # Load weights.
     if weights == 'imagenet':
-        if include_top:
-            weights_path = keras_utils.get_file(
-                'inception_v3_weights_tf_dim_ordering_tf_kernels.h5',
-                WEIGHTS_PATH,
-                cache_subdir='models',
-                file_hash='9a0d58056eeedaa3f26cb7ebd46da564')
-        else:
-            weights_path = keras_utils.get_file(
-                'inception_v3_weights_tf_dim_ordering_tf_kernels_notop.h5',
-                WEIGHTS_PATH_NO_TOP,
-                cache_subdir='models',
-                file_hash='bcbd6486424b2319ff4ef7d526e38f63')
-        model.load_weights(weights_path)
+        print('Warning: no imagenet weights available!!!')
     elif weights is not None:
         model.load_weights(weights)
 

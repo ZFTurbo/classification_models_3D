@@ -57,6 +57,7 @@ from __future__ import division
 import os
 import warnings
 from .. import get_submodules_from_kwargs
+from ..weights import load_model_weights
 
 backend = None
 layers = None
@@ -64,9 +65,6 @@ models = None
 keras_utils = None
 from keras_applications import imagenet_utils
 
-
-BASE_WEIGHT_PATH = ('https://github.com/fchollet/deep-learning-models/'
-                    'releases/download/v0.6/')
 
 
 def preprocess_input(x, **kwargs):
@@ -262,31 +260,11 @@ def MobileNet(input_shape=None,
     model = models.Model(inputs, x, name='mobilenet_%0.2f_%s' % (alpha, rows))
 
     # Load weights.
-    if weights == 'imagenet':
-        if alpha == 1.0:
-            alpha_text = '1_0'
-        elif alpha == 0.75:
-            alpha_text = '7_5'
-        elif alpha == 0.50:
-            alpha_text = '5_0'
+    if weights:
+        if type(weights) == str and os.path.exists(weights):
+            model.load_weights(weights)
         else:
-            alpha_text = '2_5'
-
-        if include_top:
-            model_name = 'mobilenet_%s_%d_tf.h5' % (alpha_text, rows)
-            weight_path = BASE_WEIGHT_PATH + model_name
-            weights_path = keras_utils.get_file(model_name,
-                                                weight_path,
-                                                cache_subdir='models')
-        else:
-            model_name = 'mobilenet_%s_%d_tf_no_top.h5' % (alpha_text, rows)
-            weight_path = BASE_WEIGHT_PATH + model_name
-            weights_path = keras_utils.get_file(model_name,
-                                                weight_path,
-                                                cache_subdir='models')
-        model.load_weights(weights_path)
-    elif weights is not None:
-        model.load_weights(weights)
+            load_model_weights(model, 'mobilenet', weights, classes, include_top, **kwargs)
 
     return model
 

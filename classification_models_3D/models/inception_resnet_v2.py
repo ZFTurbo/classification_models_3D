@@ -23,9 +23,6 @@ from .. import get_submodules_from_kwargs
 from keras_applications import imagenet_utils
 
 
-BASE_WEIGHT_URL = ('https://github.com/fchollet/deep-learning-models/'
-                   'releases/download/v0.7/')
-
 backend = None
 layers = None
 models = None
@@ -334,22 +331,7 @@ def InceptionResNetV2(include_top=True,
 
     # Load weights.
     if weights == 'imagenet':
-        if include_top:
-            fname = 'inception_resnet_v2_weights_tf_dim_ordering_tf_kernels.h5'
-            weights_path = keras_utils.get_file(
-                fname,
-                BASE_WEIGHT_URL + fname,
-                cache_subdir='models',
-                file_hash='e693bd0210a403b3192acc6073ad2e96')
-        else:
-            fname = ('inception_resnet_v2_weights_'
-                     'tf_dim_ordering_tf_kernels_notop.h5')
-            weights_path = keras_utils.get_file(
-                fname,
-                BASE_WEIGHT_URL + fname,
-                cache_subdir='models',
-                file_hash='d19885ff4a710c122648d3b5c3b684e4')
-        model.load_weights(weights_path)
+        print('Warning: no imagenet weights available!!!')
     elif weights is not None:
         model.load_weights(weights)
 

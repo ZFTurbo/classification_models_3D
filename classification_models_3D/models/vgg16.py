@@ -13,16 +13,10 @@ from __future__ import print_function
 import os
 from .. import get_submodules_from_kwargs
 from keras_applications import imagenet_utils
+from ..weights import load_model_weights
 
 
 preprocess_input = imagenet_utils.preprocess_input
-
-WEIGHTS_PATH = ('https://github.com/fchollet/deep-learning-models/'
-                'releases/download/v0.1/'
-                'vgg16_weights_tf_dim_ordering_tf_kernels.h5')
-WEIGHTS_PATH_NO_TOP = ('https://github.com/fchollet/deep-learning-models/'
-                       'releases/download/v0.1/'
-                       'vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5')
 
 
 def VGG16(include_top=True,
@@ -185,23 +179,10 @@ def VGG16(include_top=True,
     model = models.Model(inputs, x, name='vgg16')
 
     # Load weights.
-    if weights == 'imagenet':
-        if include_top:
-            weights_path = keras_utils.get_file(
-                'vgg16_weights_tf_dim_ordering_tf_kernels.h5',
-                WEIGHTS_PATH,
-                cache_subdir='models',
-                file_hash='64373286793e3c8b2b4e3219cbf3544b')
+    if weights:
+        if type(weights) == str and os.path.exists(weights):
+            model.load_weights(weights)
         else:
-            weights_path = keras_utils.get_file(
-                'vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5',
-                WEIGHTS_PATH_NO_TOP,
-                cache_subdir='models',
-                file_hash='6d6bbae143d832006294945121d1f1fc')
-        model.load_weights(weights_path)
-        if backend.backend() == 'theano':
-            keras_utils.convert_all_kernels_in_model(model)
-    elif weights is not None:
-        model.load_weights(weights)
+            load_model_weights(model, 'vgg16', weights, classes, include_top, **kwargs)
 
     return model

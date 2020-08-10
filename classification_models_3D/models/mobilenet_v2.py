@@ -79,11 +79,9 @@ from __future__ import division
 import os
 import warnings
 from .. import get_submodules_from_kwargs
+from ..weights import load_model_weights
 from keras_applications import imagenet_utils
 
-# TODO Change path to v1.1
-BASE_WEIGHT_PATH = ('https://github.com/JonathanCMitchell/mobilenet_v2_keras/'
-                    'releases/download/v1.1/')
 
 backend = None
 layers = None
@@ -419,22 +417,11 @@ def MobileNetV2(input_shape=None,
                          name='mobilenetv2_%0.2f_%s' % (alpha, rows))
 
     # Load weights.
-    if weights == 'imagenet':
-        if include_top:
-            model_name = ('mobilenet_v2_weights_tf_dim_ordering_tf_kernels_' +
-                          str(alpha) + '_' + str(rows) + '.h5')
-            weight_path = BASE_WEIGHT_PATH + model_name
-            weights_path = keras_utils.get_file(
-                model_name, weight_path, cache_subdir='models')
+    if weights:
+        if type(weights) == str and os.path.exists(weights):
+            model.load_weights(weights)
         else:
-            model_name = ('mobilenet_v2_weights_tf_dim_ordering_tf_kernels_' +
-                          str(alpha) + '_' + str(rows) + '_no_top' + '.h5')
-            weight_path = BASE_WEIGHT_PATH + model_name
-            weights_path = keras_utils.get_file(
-                model_name, weight_path, cache_subdir='models')
-        model.load_weights(weights_path)
-    elif weights is not None:
-        model.load_weights(weights)
+            load_model_weights(model, 'mobilenetv2', weights, classes, include_top, **kwargs)
 
     return model
 
