@@ -57,8 +57,8 @@ Training with single NVIDIA 1080Ti (11 GB) worked with:
 
  * [https://github.com/qubvel/classification_models](https://github.com/qubvel/classification_models) - original 2D repo
  * [volumentations](https://github.com/ZFTurbo/volumentations) - 3D augmentations
- * [segmentation models 3D](https://github.com/ZFTurbo/segmentation_models_3D) - models for segmentation in 3D (soon)
- * driven_data_repo - code for training and inference on real dataset (soon)
+ * [segmentation models 3D](https://github.com/ZFTurbo/segmentation_models_3D) - models for segmentation in 3D
+ * [driven_data_repo](https://github.com/ZFTurbo/DrivenData-Alzheimer-Research-1st-place-solution) - code for training and inference on real dataset
  
 ### Unresolved problems
 
