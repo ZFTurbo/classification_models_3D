@@ -69,4 +69,17 @@ Training with single NVIDIA 1080Ti (11 GB) worked with:
  
 This code was used to get 1st place in [DrivenData: Advance Alzheimer’s Research with Stall Catchers](https://www.drivendata.org/competitions/65/clog-loss-alzheimers-research/leaderboard/) competition.
  
-More details on ArXiv: (soon)
+More details on ArXiv: https://arxiv.org/abs/2104.01687
+
+## Citation
+
+If you find this code useful, please cite it as:
+```
+@InProceedings{RSolovyev_2021_stalled,
+  author = {Solovyev, Roman and Kalinin, Alexandr A. and Gabruseva, Tatiana},
+  title = {3D Convolutional Neural Networks for Stalled Brain Capillary Detection},
+  booktitle = {Arxiv: 2104.01687},
+  month = {April},
+  year = {2021}
+}
+```
