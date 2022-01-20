@@ -27,8 +27,8 @@ This repository is based on great [classification_models](https://github.com/qub
 ##### Loading model with `imagenet` weights:
 
 ```python
-# for keras
-from classification_models_3D.keras import Classifiers
+# for Tenosrflow 
+from classification_models_3D.tfkeras import Classifiers
 
 # for tensorflow.keras
 # from classification_models_3D.tfkeras import Classifiers
