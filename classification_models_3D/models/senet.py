@@ -455,7 +455,7 @@ def SEResNet50(
         include_top=False,
         stride_size=2,
         init_filters=64,
-        repetitions=(3, 4, 23, 3),
+        repetitions=(3, 4, 6, 3),
         **kwargs
 ):
     return SENet(
@@ -480,7 +480,7 @@ def SEResNet101(
         include_top=False,
         stride_size=2,
         init_filters=64,
-        repetitions=(3, 4, 6, 3),
+        repetitions=(3, 4, 23, 3),
         **kwargs
 ):
     return SENet(
