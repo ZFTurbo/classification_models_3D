@@ -23,3 +23,4 @@ Here each tuple control individual stride/pooling. While each tuple control stri
 Strides doesn't affect model structure and you can use `imagenet` weights with such modified models.
 
 - For some models (resnet, resnext, senet, densenet, vgg16, vgg19) it's possible to increase number of blocks using `repetition` parameter. It can be useful if you need to add more poolings and layers.
+- Minimum TF version bumped to 2.8.0
