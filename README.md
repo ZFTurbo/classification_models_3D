@@ -17,6 +17,8 @@ This repository is based on great [classification_models](https://github.com/qub
 - [Inception V3](http://arxiv.org/abs/1512.00567)
 - [MobileNet](https://arxiv.org/pdf/1704.04861.pdf)
 - [MobileNet v2](https://arxiv.org/abs/1801.04381)
+- [EfficientNet](https://arxiv.org/abs/1905.11946) [B0, B1, B2, B3, B4, B5, B6, B7]
+- [EfficientNet v2](https://arxiv.org/abs/2104.00298) [B0, B1, B2, B3, S, M, L]
 
 ### Installation 
 
@@ -27,21 +29,24 @@ This repository is based on great [classification_models](https://github.com/qub
 ##### Loading model with `imagenet` weights:
 
 ```python
-# for Tenosrflow 
-from classification_models_3D.tfkeras import Classifiers
 
-# for tensorflow.keras
-# from classification_models_3D.tfkeras import Classifiers
+from classification_models_3D.tfkeras import Classifiers
 
 ResNet18, preprocess_input = Classifiers.get('resnet18')
 model = ResNet18(input_shape=(128, 128, 128, 3), weights='imagenet')
 ```
 
-All possible nets for `Classifiers.get()` method: `'resnet18, 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50', 'seresnet101', 'seresnet152', 'seresnext50', 'seresnext101', 'senet154', 'resnext50', 'resnext101', 'vgg16', 'vgg19', 'densenet121', 'densenet169', 'densenet201', 'inceptionresnetv2', 'inceptionv3', 'mobilenet', 'mobilenetv2'`
+All possible nets for `Classifiers.get()` method: `'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50',
+        'seresnet101', 'seresnet152', 'seresnext50', 'seresnext101', 'senet154', 'resnext50', 'resnext101',
+        'vgg16', 'vgg19', 'densenet121', 'densenet169', 'densenet201', 'mobilenet', 'mobilenetv2',
+        'inceptionresnetv2', 'inceptionv3',  'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
+        'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7', 'efficientnetv2-b0',
+        'efficientnetv2-b1', 'efficientnetv2-b2', 'efficientnetv2-b3', 'efficientnetv2-s', 'efficientnetv2-m',
+        'efficientnetv2-l'`
 
 ### Convert imagenet weights (2D -> 3D)
 
-Code to convert 2D imagenet weights to 3D variant is available here: [convert_imagenet_weights_to_3D_models.py](convert_imagenet_weights_to_3D_models.py). Weights were obtained with TF2, but works OK with Keras + TF1 as well.
+Code to convert 2D imagenet weights to 3D variant is available here: [convert_imagenet_weights_to_3D_models.py](convert_imagenet_weights_to_3D_models.py). 
 
 ### How to choose input shape
 
@@ -52,6 +57,53 @@ Training with single NVIDIA 1080Ti (11 GB) worked with:
 * DenseNet121, DenseNet169 and ResNet50 with shape (96, 128, 128, 3) and batch size 6
 * DenseNet201 with shape (96, 128, 128, 3) and batch size 5
 * ResNet18 with shape (128, 160, 160, 3) and batch size 6
+
+### Additional features
+
+#### Pooling
+Default pooling/stride size for 3D models is set equal to 2. You can change it for your needs using parameter 
+ `stride_size`. Example:
+ 
+ ```python
+from classification_models_3D.tfkeras import Classifiers
+
+ResNet18, preprocess_input = Classifiers.get('resnet18')
+model = ResNet18(
+    input_shape=(224, 224, 224, 3),
+    stride_size=4,
+    kernel_size=3, 
+    weights=None
+)
+```
+
+`stride_size` can be: 
+- single integer. Example: `4`
+- tuple of size 5 (if you didn't change `repetition` parameter). Example: `(2, 2, 4, 2, 2)`
+- tuple of tuples. Example: `(
+(2, 2, 1), (2, 2, 4), (2, 2, 2), (2, 1, 2), (2, 4, 2),  
+)`. Each number in `(2, 2, 1)` control stride of individual dimension.
+
+#### More blocks
+
+* For some models like (resnet, resnext, senet, vgg16, vgg19, densenet) it's possible to change number of blocks/poolings. 
+For example if you want to make more poolings overall. You can do it like that:
+
+ ```python
+from classification_models_3D.tfkeras import Classifiers
+
+ResNet18, preprocess_input = Classifiers.get('resnet18')
+model = ResNet18(
+    input_shape=(128, 128, 128, 3),
+    include_top=False,
+    weights=None,
+    stride_size=(1, 1, 2, 2, 2, 2, 2, 2),
+    repetitions=(2, 2, 2, 2, 2, 2, 2),
+    init_filters=16,
+)
+```
+
+- **Note 1**: Since number of filters grows 2 times, you can set initial number of filters with `init_filters` parameter.
+- **Note 2**: There is no `imagenet` weights for models which were modified this way. 
 
 ### Related repositories
 

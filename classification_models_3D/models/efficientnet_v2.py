@@ -21,10 +21,12 @@ Reference:
     https://arxiv.org/abs/2104.00298) (ICML 2021)
 """
 
+import os
 import copy
 import math
 
 from .. import get_submodules_from_kwargs
+from ..weights import load_model_weights
 from keras import backend
 from keras import layers
 from keras.applications import imagenet_utils
@@ -1046,8 +1048,11 @@ def EfficientNetV2(
     model = training.Model(inputs, x, name=model_name)
 
     # Load weights.
-    if weights is not None:
-        model.load_weights(weights)
+    if weights:
+        if type(weights) == str and os.path.exists(weights):
+            model.load_weights(weights)
+        else:
+            load_model_weights(model, model_name, weights, classes, include_top, **kwargs)
 
     return model
 

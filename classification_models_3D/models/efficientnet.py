@@ -22,8 +22,10 @@ Reference:
 """
 
 from .. import get_submodules_from_kwargs
+from ..weights import load_model_weights
 import tensorflow.compat.v2 as tf
 
+import os
 import copy
 import math
 
@@ -425,8 +427,11 @@ def EfficientNet(
     model = training.Model(inputs, x, name=model_name)
 
     # Load weights.
-    if weights is not None:
-        model.load_weights(weights)
+    if weights:
+        if type(weights) == str and os.path.exists(weights):
+            model.load_weights(weights)
+        else:
+            load_model_weights(model, model_name, weights, classes, include_top, **kwargs)
 
     return model
 

@@ -238,13 +238,13 @@ def DenseNet(
 
     # Create model.
     model_name = ''
-    if blocks == [6, 12, 24, 16]:
+    if blocks == (6, 12, 24, 16):
         model_name = 'densenet121'
         model = models.Model(inputs, x, name='densenet121')
-    elif blocks == [6, 12, 32, 32]:
+    elif blocks == (6, 12, 32, 32):
         model_name = 'densenet169'
         model = models.Model(inputs, x, name='densenet169')
-    elif blocks == [6, 12, 48, 32]:
+    elif blocks == (6, 12, 48, 32):
         model_name = 'densenet201'
         model = models.Model(inputs, x, name='densenet201')
     else:
