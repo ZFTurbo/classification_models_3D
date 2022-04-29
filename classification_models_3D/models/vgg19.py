@@ -19,13 +19,19 @@ from ..weights import load_model_weights
 preprocess_input = imagenet_utils.preprocess_input
 
 
-def VGG19(include_top=True,
-          weights='imagenet',
-          input_tensor=None,
-          input_shape=None,
-          pooling=None,
-          classes=1000,
-          **kwargs):
+def VGG19(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        max_filters=512,
+        repetitions=(2, 2, 4, 4, 4),
+        **kwargs
+):
     """Instantiates the VGG19 architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -83,6 +89,31 @@ def VGG19(include_top=True,
         raise ValueError('If using `weights` as `"imagenet"` with `include_top`'
                          ' as true, `classes` should be 1000')
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) < 3:
+        print('Error: stride_size length must be 3 or more')
+        return None
+
+    if len(stride_size) != len(repetitions):
+        print('Error: stride_size length must be equal to repetitions length - 1')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape)
     else:
@@ -90,84 +121,27 @@ def VGG19(include_top=True,
             img_input = layers.Input(tensor=input_tensor, shape=input_shape)
         else:
             img_input = input_tensor
-    # Block 1
-    x = layers.Conv3D(64, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block1_conv1')(img_input)
-    x = layers.Conv3D(64, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block1_conv2')(x)
-    x = layers.MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block1_pool')(x)
 
-    # Block 2
-    x = layers.Conv3D(128, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block2_conv1')(x)
-    x = layers.Conv3D(128, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block2_conv2')(x)
-    x = layers.MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block2_pool')(x)
+    x = img_input
+    for stage, rep in enumerate(repetitions):
+        for i in range(rep):
+            x = layers.Conv3D(
+                init_filters,
+                (3, 3, 3),
+                activation='relu',
+                padding='same',
+                name='block{}_conv{}'.format(stage + 1, i + 1)
+            )(x)
 
-    # Block 3
-    x = layers.Conv3D(256, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv1')(x)
-    x = layers.Conv3D(256, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv2')(x)
-    x = layers.Conv3D(256, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv3')(x)
-    x = layers.Conv3D(256, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block3_conv4')(x)
-    x = layers.MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block3_pool')(x)
+        x = layers.MaxPooling3D(
+            stride_size[stage],
+            strides=stride_size[stage],
+            name='block{}_pool'.format(stage + 1)
+        )(x)
 
-    # Block 4
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv1')(x)
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv2')(x)
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv3')(x)
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block4_conv4')(x)
-    x = layers.MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block4_pool')(x)
-
-    # Block 5
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv1')(x)
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv2')(x)
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv3')(x)
-    x = layers.Conv3D(512, (3, 3, 3),
-                      activation='relu',
-                      padding='same',
-                      name='block5_conv4')(x)
-    x = layers.MaxPooling3D((2, 2, 2), strides=(2, 2, 2), name='block5_pool')(x)
+        init_filters *= 2
+        if init_filters > max_filters:
+            init_filters = max_filters
 
     if include_top:
         # Classification block

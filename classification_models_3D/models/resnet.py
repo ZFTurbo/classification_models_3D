@@ -170,8 +170,18 @@ def residual_bottleneck_block(filters, stage, block, strides=None, attention=Non
 # -------------------------------------------------------------------------
 
 
-def ResNet(model_params, input_shape=None, input_tensor=None, include_top=True,
-           classes=1000, weights='imagenet', **kwargs):
+def ResNet(
+        model_params,
+        input_shape=None,
+        input_tensor=None,
+        include_top=False,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        weights='imagenet',
+        repetitions=None,
+        **kwargs
+):
     """Instantiates the ResNet, SEResNet architecture.
     Optionally loads weights pre-trained on ImageNet.
     Note that the data format convention used by the model is
@@ -206,6 +216,31 @@ def ResNet(model_params, input_shape=None, input_tensor=None, include_top=True,
     global backend, layers, models, keras_utils
     backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) < 3:
+        print('Error: stride_size length must be 3 or more')
+        return None
+
+    if len(stride_size) - 1 != len(repetitions):
+        print('Error: stride_size length must be equal to repetitions length - 1')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape, name='data')
     else:
@@ -225,35 +260,54 @@ def ResNet(model_params, input_shape=None, input_tensor=None, include_top=True,
     no_scale_bn_params = get_bn_params(scale=False)
     bn_params = get_bn_params()
     conv_params = get_conv_params()
-    init_filters = 64
 
     # resnet bottom
     x = layers.BatchNormalization(name='bn_data', **no_scale_bn_params)(img_input)
     x = layers.ZeroPadding3D(padding=(3, 3, 3))(x)
-    x = layers.Conv3D(init_filters, (7, 7, 7), strides=(2, 2, 2), name='conv0', **conv_params)(x)
+    x = layers.Conv3D(init_filters, (7, 7, 7), strides=stride_size[0], name='conv0', **conv_params)(x)
     x = layers.BatchNormalization(name='bn0', **bn_params)(x)
     x = layers.Activation('relu', name='relu0')(x)
     x = layers.ZeroPadding3D(padding=(1, 1, 1))(x)
-    x = layers.MaxPooling3D((3, 3, 3), strides=(2, 2, 2), padding='valid', name='pooling0')(x)
+    pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[1], padding='valid', name='pooling0')(x)
 
     # resnet body
-    for stage, rep in enumerate(model_params.repetitions):
+    stride_count = 2
+    for stage, rep in enumerate(repetitions):
         for block in range(rep):
 
             filters = init_filters * (2 ** stage)
 
             # first block of first stage without strides because we have maxpooling before
             if block == 0 and stage == 0:
-                x = ResidualBlock(filters, stage, block, strides=(1, 1, 1),
-                                  cut='post', attention=Attention)(x)
+                x = ResidualBlock(
+                    filters,
+                    stage,
+                    block,
+                    strides=(1, 1, 1),
+                    cut='post',
+                    attention=Attention
+                )(x)
 
             elif block == 0:
-                x = ResidualBlock(filters, stage, block, strides=(2, 2, 2),
-                                  cut='post', attention=Attention)(x)
-
+                x = ResidualBlock(
+                    filters,
+                    stage,
+                    block,
+                    strides=stride_size[stride_count],
+                    cut='post',
+                    attention=Attention
+                )(x)
+                stride_count += 1
             else:
-                x = ResidualBlock(filters, stage, block, strides=(1, 1, 1),
-                                  cut='pre', attention=Attention)(x)
+                x = ResidualBlock(
+                    filters,
+                    stage,
+                    block,
+                    strides=(1, 1, 1),
+                    cut='pre',
+                    attention=Attention
+                )(x)
 
     x = layers.BatchNormalization(name='bn1', **bn_params)(x)
     x = layers.Activation('relu', name='relu1')(x)
@@ -298,86 +352,177 @@ MODELS_PARAMS = {
 }
 
 
-def ResNet18(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def ResNet18(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        include_top=False,
+        repetitions=(2, 2, 2, 2),
+        **kwargs
+):
     return ResNet(
         MODELS_PARAMS['resnet18'],
         input_shape=input_shape,
         input_tensor=input_tensor,
         include_top=include_top,
         classes=classes,
+        stride_size=stride_size,
+        init_filters=init_filters,
         weights=weights,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def ResNet34(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def ResNet34(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        include_top=False,
+        repetitions=(3, 4, 6, 3),
+        **kwargs
+):
     return ResNet(
         MODELS_PARAMS['resnet34'],
         input_shape=input_shape,
         input_tensor=input_tensor,
         include_top=include_top,
         classes=classes,
+        stride_size=stride_size,
+        init_filters=init_filters,
         weights=weights,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def ResNet50(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def ResNet50(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        include_top=False,
+        repetitions=(3, 4, 6, 3),
+        **kwargs
+):
     return ResNet(
         MODELS_PARAMS['resnet50'],
         input_shape=input_shape,
         input_tensor=input_tensor,
         include_top=include_top,
         classes=classes,
+        stride_size=stride_size,
+        init_filters=init_filters,
         weights=weights,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def ResNet101(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def ResNet101(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        include_top=False,
+        repetitions=(3, 4, 23, 3),
+        **kwargs
+):
     return ResNet(
         MODELS_PARAMS['resnet101'],
         input_shape=input_shape,
         input_tensor=input_tensor,
         include_top=include_top,
         classes=classes,
+        stride_size=stride_size,
+        init_filters=init_filters,
         weights=weights,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def ResNet152(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def ResNet152(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        include_top=False,
+        repetitions=(3, 8, 36, 3),
+        **kwargs
+):
     return ResNet(
         MODELS_PARAMS['resnet152'],
         input_shape=input_shape,
         input_tensor=input_tensor,
         include_top=include_top,
         classes=classes,
+        stride_size=stride_size,
+        init_filters=init_filters,
         weights=weights,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def SEResNet18(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SEResNet18(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        include_top=False,
+        repetitions=(2, 2, 2, 2),
+        **kwargs
+):
     return ResNet(
         MODELS_PARAMS['seresnet18'],
         input_shape=input_shape,
         input_tensor=input_tensor,
         include_top=include_top,
         classes=classes,
+        stride_size=stride_size,
+        init_filters=init_filters,
         weights=weights,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def SEResNet34(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SEResNet34(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        stride_size=2,
+        init_filters=64,
+        include_top=False,
+        repetitions=(3, 4, 6, 3),
+        **kwargs
+):
     return ResNet(
         MODELS_PARAMS['seresnet34'],
         input_shape=input_shape,
         input_tensor=input_tensor,
         include_top=include_top,
         classes=classes,
+        stride_size=stride_size,
+        init_filters=init_filters,
         weights=weights,
+        repetitions=repetitions,
         **kwargs
     )
 

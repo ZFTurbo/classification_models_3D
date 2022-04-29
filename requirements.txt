@@ -1,2 +1,2 @@
-tensorflow>=2.3.2
+tensorflow>=2.8.0
 keras_applications>=1.0.8

@@ -168,13 +168,16 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
     return x
 
 
-def InceptionResNetV2(include_top=True,
-                      weights='imagenet',
-                      input_tensor=None,
-                      input_shape=None,
-                      pooling=None,
-                      classes=1000,
-                      **kwargs):
+def InceptionResNetV2(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        **kwargs
+):
     """Instantiates the Inception-ResNet v2 architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -229,6 +232,27 @@ def InceptionResNetV2(include_top=True,
         raise ValueError('If using `weights` as `"imagenet"` with `include_top`'
                          ' as true, `classes` should be 1000')
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) != 5:
+        print('Error: stride_size length must be exactly 5')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape)
     else:
@@ -238,13 +262,15 @@ def InceptionResNetV2(include_top=True,
             img_input = input_tensor
 
     # Stem block: 35 x 35 x 192
-    x = conv3d_bn(img_input, 32, 3, strides=2, padding='valid')
+    x = conv3d_bn(img_input, 32, 3, strides=stride_size[0], padding='valid')
     x = conv3d_bn(x, 32, 3, padding='valid')
     x = conv3d_bn(x, 64, 3)
-    x = layers.MaxPooling3D(3, strides=2)(x)
+    pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[1])(x)
     x = conv3d_bn(x, 80, 1, padding='valid')
     x = conv3d_bn(x, 192, 3, padding='valid')
-    x = layers.MaxPooling3D(3, strides=2)(x)
+    pool = (stride_size[2][0] + 1, stride_size[2][1] + 1, stride_size[2][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[2])(x)
 
     # Mixed 5b (Inception-A block): 35 x 35 x 320
     branch_0 = conv3d_bn(x, 96, 1)
@@ -267,11 +293,12 @@ def InceptionResNetV2(include_top=True,
                                    block_idx=block_idx)
 
     # Mixed 6a (Reduction-A block): 17 x 17 x 1088
-    branch_0 = conv3d_bn(x, 384, 3, strides=2, padding='valid')
+    branch_0 = conv3d_bn(x, 384, 3, strides=stride_size[3], padding='valid')
     branch_1 = conv3d_bn(x, 256, 1)
     branch_1 = conv3d_bn(branch_1, 256, 3)
-    branch_1 = conv3d_bn(branch_1, 384, 3, strides=2, padding='valid')
-    branch_pool = layers.MaxPooling3D(3, strides=2, padding='valid')(x)
+    branch_1 = conv3d_bn(branch_1, 384, 3, strides=stride_size[3], padding='valid')
+    pool = (stride_size[3][0] + 1, stride_size[3][1] + 1, stride_size[3][2] + 1)
+    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[3], padding='valid')(x)
     branches = [branch_0, branch_1, branch_pool]
     x = layers.Concatenate(axis=channel_axis, name='mixed_6a')(branches)
 
@@ -284,13 +311,14 @@ def InceptionResNetV2(include_top=True,
 
     # Mixed 7a (Reduction-B block): 8 x 8 x 2080
     branch_0 = conv3d_bn(x, 256, 1)
-    branch_0 = conv3d_bn(branch_0, 384, 3, strides=2, padding='valid')
+    branch_0 = conv3d_bn(branch_0, 384, 3, strides=stride_size[4], padding='valid')
     branch_1 = conv3d_bn(x, 256, 1)
-    branch_1 = conv3d_bn(branch_1, 288, 3, strides=2, padding='valid')
+    branch_1 = conv3d_bn(branch_1, 288, 3, strides=stride_size[4], padding='valid')
     branch_2 = conv3d_bn(x, 256, 1)
     branch_2 = conv3d_bn(branch_2, 288, 3)
-    branch_2 = conv3d_bn(branch_2, 320, 3, strides=2, padding='valid')
-    branch_pool = layers.MaxPooling3D(3, strides=2, padding='valid')(x)
+    branch_2 = conv3d_bn(branch_2, 320, 3, strides=stride_size[4], padding='valid')
+    pool = (stride_size[4][0] + 1, stride_size[4][1] + 1, stride_size[4][2] + 1)
+    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[4], padding='valid')(x)
     branches = [branch_0, branch_1, branch_2, branch_pool]
     x = layers.Concatenate(axis=channel_axis, name='mixed_7a')(branches)
 

@@ -45,7 +45,7 @@ def dense_block(x, blocks, name):
     return x
 
 
-def transition_block(x, reduction, name):
+def transition_block(x, reduction, name, stride_size):
     """A transition block.
 
     # Arguments
@@ -56,14 +56,17 @@ def transition_block(x, reduction, name):
     # Returns
         output tensor for the block.
     """
-    bn_axis = 4 if backend.image_data_format() == 'channels_last' else 1
+    bn_axis = -1 if backend.image_data_format() == 'channels_last' else 1
     x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5,
                                   name=name + '_bn')(x)
     x = layers.Activation('relu', name=name + '_relu')(x)
-    x = layers.Conv3D(int(backend.int_shape(x)[bn_axis] * reduction), 1,
-                      use_bias=False,
-                      name=name + '_conv')(x)
-    x = layers.AveragePooling3D(2, strides=2, name=name + '_pool')(x)
+    x = layers.Conv3D(
+        int(backend.int_shape(x)[bn_axis] * reduction),
+        1,
+        use_bias=False,
+        name=name + '_conv'
+    )(x)
+    x = layers.AveragePooling3D(stride_size, strides=stride_size, name=name + '_pool')(x)
     return x
 
 
@@ -78,7 +81,7 @@ def conv_block(x, growth_rate, name):
     # Returns
         Output tensor for the block.
     """
-    bn_axis = 4 if backend.image_data_format() == 'channels_last' else 1
+    bn_axis = -1 if backend.image_data_format() == 'channels_last' else 1
     x1 = layers.BatchNormalization(axis=bn_axis,
                                    epsilon=1.001e-5,
                                    name=name + '_0_bn')(x)
@@ -97,14 +100,17 @@ def conv_block(x, growth_rate, name):
     return x
 
 
-def DenseNet(blocks,
-             include_top=True,
-             weights='imagenet',
-             input_tensor=None,
-             input_shape=None,
-             pooling=None,
-             classes=1000,
-             **kwargs):
+def DenseNet(
+        blocks,
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        **kwargs
+):
     """Instantiates the DenseNet architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -163,6 +169,31 @@ def DenseNet(blocks,
         raise ValueError('If using `weights` as `"imagenet"` with `include_top`'
                          ' as true, `classes` should be 1000')
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) < 3:
+        print('Error: stride_size length must be 3 or more')
+        return None
+
+    if len(stride_size) - 1 != len(blocks):
+        print('Error: stride_size length must be equal to repetitions length - 1')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape)
     else:
@@ -174,23 +205,19 @@ def DenseNet(blocks,
     bn_axis = 4 if backend.image_data_format() == 'channels_last' else 1
 
     x = layers.ZeroPadding3D(padding=((3, 3), (3, 3), (3, 3)))(img_input)
-    x = layers.Conv3D(64, 7, strides=2, use_bias=False, name='conv1/conv')(x)
-    x = layers.BatchNormalization(
-        axis=bn_axis, epsilon=1.001e-5, name='conv1/bn')(x)
+    x = layers.Conv3D(64, 7, strides=stride_size[0], use_bias=False, name='conv1/conv')(x)
+    x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='conv1/bn')(x)
     x = layers.Activation('relu', name='conv1/relu')(x)
     x = layers.ZeroPadding3D(padding=((1, 1), (1, 1), (1, 1)))(x)
-    x = layers.MaxPooling3D(3, strides=2, name='pool1')(x)
+    pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[1], name='pool1')(x)
 
-    x = dense_block(x, blocks[0], name='conv2')
-    x = transition_block(x, 0.5, name='pool2')
-    x = dense_block(x, blocks[1], name='conv3')
-    x = transition_block(x, 0.5, name='pool3')
-    x = dense_block(x, blocks[2], name='conv4')
-    x = transition_block(x, 0.5, name='pool4')
-    x = dense_block(x, blocks[3], name='conv5')
+    for i in range(2, len(blocks) + 1):
+        x = dense_block(x, blocks[i-2], name='conv{}'.format(i))
+        x = transition_block(x, 0.5, name='pool{}'.format(i), stride_size=stride_size[i])
+    x = dense_block(x, blocks[-1], name='conv{}'.format(len(blocks) + 1))
 
-    x = layers.BatchNormalization(
-        axis=bn_axis, epsilon=1.001e-5, name='bn')(x)
+    x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='bn')(x)
     x = layers.Activation('relu', name='relu')(x)
 
     if include_top:
@@ -234,46 +261,76 @@ def DenseNet(blocks,
     return model
 
 
-def DenseNet121(include_top=True,
-                weights='imagenet',
-                input_tensor=None,
-                input_shape=None,
-                pooling=None,
-                classes=1000,
-                **kwargs):
-    return DenseNet([6, 12, 24, 16],
-                    include_top, weights,
-                    input_tensor, input_shape,
-                    pooling, classes,
-                    **kwargs)
+def DenseNet121(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        repetitions=(6, 12, 24, 16),
+        **kwargs
+):
+    return DenseNet(
+        repetitions,
+        include_top,
+        weights,
+        input_tensor,
+        input_shape,
+        pooling,
+        classes,
+        stride_size=stride_size,
+        **kwargs
+    )
 
 
-def DenseNet169(include_top=True,
-                weights='imagenet',
-                input_tensor=None,
-                input_shape=None,
-                pooling=None,
-                classes=1000,
-                **kwargs):
-    return DenseNet([6, 12, 32, 32],
-                    include_top, weights,
-                    input_tensor, input_shape,
-                    pooling, classes,
-                    **kwargs)
+def DenseNet169(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        repetitions=(6, 12, 32, 32),
+        **kwargs
+):
+    return DenseNet(
+        repetitions,
+        include_top,
+        weights,
+        input_tensor,
+        input_shape,
+        pooling,
+        classes,
+        stride_size=stride_size,
+        **kwargs
+    )
 
 
-def DenseNet201(include_top=True,
-                weights='imagenet',
-                input_tensor=None,
-                input_shape=None,
-                pooling=None,
-                classes=1000,
-                **kwargs):
-    return DenseNet([6, 12, 48, 32],
-                    include_top, weights,
-                    input_tensor, input_shape,
-                    pooling, classes,
-                    **kwargs)
+def DenseNet201(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        repetitions=(6, 12, 48, 32),
+        **kwargs
+):
+    return DenseNet(
+        repetitions,
+        include_top,
+        weights,
+        input_tensor,
+        input_shape,
+        pooling,
+        classes,
+        stride_size=stride_size,
+        **kwargs
+    )
 
 
 def preprocess_input(x, data_format=None, **kwargs):
@@ -286,8 +343,7 @@ def preprocess_input(x, data_format=None, **kwargs):
     # Returns
         Preprocessed array.
     """
-    return imagenet_utils.preprocess_input(x, data_format,
-                                           mode='torch', **kwargs)
+    return imagenet_utils.preprocess_input(x, data_format, mode='torch', **kwargs)
 
 
 setattr(DenseNet121, '__doc__', DenseNet.__doc__)

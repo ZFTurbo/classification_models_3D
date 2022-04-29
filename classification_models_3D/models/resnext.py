@@ -135,12 +135,16 @@ def identity_block(filters, stage, block, **kwargs):
 
 def ResNeXt(
         model_params,
-        include_top=True,
+        include_top=False,
         input_tensor=None,
         input_shape=None,
         classes=1000,
         weights='imagenet',
-        **kwargs):
+        stride_size=2,
+        repetitions=None,
+        init_filters=128,
+        **kwargs
+):
     """Instantiates the ResNet, SEResNet architecture.
     Optionally loads weights pre-trained on ImageNet.
     Note that the data format convention used by the model is
@@ -175,6 +179,31 @@ def ResNeXt(
     global backend, layers, models, keras_utils
     backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) < 3:
+        print('Error: stride_size length must be 3 or more')
+        return None
+
+    if len(stride_size) - 1 != len(repetitions):
+        print('Error: stride_size length must be equal to repetitions length - 1')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape, name='data')
     else:
@@ -191,14 +220,15 @@ def ResNeXt(
     # resnext bottom
     x = layers.BatchNormalization(name='bn_data', **no_scale_bn_params)(img_input)
     x = layers.ZeroPadding3D(padding=(3, 3, 3))(x)
-    x = layers.Conv3D(64, (7, 7, 7), strides=(2, 2, 2), name='conv0', **conv_params)(x)
+    x = layers.Conv3D(init_filters // 2, (7, 7, 7), strides=stride_size[0], name='conv0', **conv_params)(x)
     x = layers.BatchNormalization(name='bn0', **bn_params)(x)
     x = layers.Activation('relu', name='relu0')(x)
     x = layers.ZeroPadding3D(padding=(1, 1, 1))(x)
-    x = layers.MaxPooling3D((3, 3, 3), strides=(2, 2, 2), padding='valid', name='pooling0')(x)
+    pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[1], padding='valid', name='pooling0')(x)
 
     # resnext body
-    init_filters = 128
+    stride_count = 2
     for stage, rep in enumerate(model_params.repetitions):
         for block in range(rep):
 
@@ -206,13 +236,30 @@ def ResNeXt(
 
             # first block of first stage without strides because we have maxpooling before
             if stage == 0 and block == 0:
-                x = conv_block(filters, stage, block, strides=(1, 1, 1), **kwargs)(x)
+                x = conv_block(
+                    filters,
+                    stage,
+                    block,
+                    strides=(1, 1, 1),
+                    **kwargs
+                )(x)
 
             elif block == 0:
-                x = conv_block(filters, stage, block, strides=(2, 2, 2), **kwargs)(x)
-
+                x = conv_block(
+                    filters,
+                    stage,
+                    block,
+                    strides=stride_size[stride_count],
+                    **kwargs
+                )(x)
+                stride_count += 1
             else:
-                x = identity_block(filters, stage, block, **kwargs)(x)
+                x = identity_block(
+                    filters,
+                    stage,
+                    block,
+                    **kwargs
+                )(x)
 
     # resnext top
     if include_top:
@@ -249,7 +296,16 @@ MODELS_PARAMS = {
 }
 
 
-def ResNeXt50(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def ResNeXt50(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        repetitions=(3, 4, 6, 3),
+        **kwargs
+):
     return ResNeXt(
         MODELS_PARAMS['resnext50'],
         input_shape=input_shape,
@@ -257,11 +313,22 @@ def ResNeXt50(input_shape=None, input_tensor=None, weights=None, classes=1000, i
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def ResNeXt101(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def ResNeXt101(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        repetitions=(3, 4, 23, 3),
+        **kwargs
+):
     return ResNeXt(
         MODELS_PARAMS['resnext101'],
         input_shape=input_shape,
@@ -269,6 +336,8 @@ def ResNeXt101(input_shape=None, input_tensor=None, weights=None, classes=1000, 
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        repetitions=repetitions,
         **kwargs
     )
 

@@ -79,16 +79,19 @@ def preprocess_input(x, **kwargs):
     return imagenet_utils.preprocess_input(x, mode='tf', **kwargs)
 
 
-def MobileNet(input_shape=None,
-              alpha=1.0,
-              depth_multiplier=1,
-              dropout=1e-3,
-              include_top=True,
-              weights='imagenet',
-              input_tensor=None,
-              pooling=None,
-              classes=1000,
-              **kwargs):
+def MobileNet(
+        input_shape=None,
+        alpha=1.0,
+        depth_multiplier=1,
+        dropout=1e-3,
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        **kwargs
+):
     """Instantiates the MobileNet architecture.
 
     # Arguments
@@ -157,6 +160,27 @@ def MobileNet(input_shape=None,
         raise ValueError('If using `weights` as `"imagenet"` with `include_top` '
                          'as true, `classes` should be 1000')
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) != 5:
+        print('Error: stride_size length must be exactly 5')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     # Determine proper input shape and default size.
     if input_shape is None:
         default_size = 224
@@ -206,27 +230,23 @@ def MobileNet(input_shape=None,
         else:
             img_input = input_tensor
 
-    x = _conv_block(img_input, 32, alpha, strides=(2, 2, 2))
+    x = _conv_block(img_input, 32, alpha, strides=stride_size[0])
     x = _depthwise_conv_block(x, 64, alpha, depth_multiplier, block_id=1)
 
-    x = _depthwise_conv_block(x, 128, alpha, depth_multiplier,
-                              strides=(2, 2, 2), block_id=2)
+    x = _depthwise_conv_block(x, 128, alpha, depth_multiplier, strides=stride_size[1], block_id=2)
     x = _depthwise_conv_block(x, 128, alpha, depth_multiplier, block_id=3)
 
-    x = _depthwise_conv_block(x, 256, alpha, depth_multiplier,
-                              strides=(2, 2, 2), block_id=4)
+    x = _depthwise_conv_block(x, 256, alpha, depth_multiplier, strides=stride_size[2], block_id=4)
     x = _depthwise_conv_block(x, 256, alpha, depth_multiplier, block_id=5)
 
-    x = _depthwise_conv_block(x, 512, alpha, depth_multiplier,
-                              strides=(2, 2, 2), block_id=6)
+    x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, strides=stride_size[3], block_id=6)
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=7)
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=8)
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=9)
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=10)
     x = _depthwise_conv_block(x, 512, alpha, depth_multiplier, block_id=11)
 
-    x = _depthwise_conv_block(x, 1024, alpha, depth_multiplier,
-                              strides=(2, 2, 2), block_id=12)
+    x = _depthwise_conv_block(x, 1024, alpha, depth_multiplier, strides=stride_size[4], block_id=12)
     x = _depthwise_conv_block(x, 1024, alpha, depth_multiplier, block_id=13)
 
     if include_top:

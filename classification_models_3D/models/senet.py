@@ -198,9 +198,12 @@ def SENet(
         model_params,
         input_tensor=None,
         input_shape=None,
-        include_top=True,
+        include_top=False,
         classes=1000,
         weights='imagenet',
+        stride_size=2,
+        init_filters=64,
+        repetitions=None,
         **kwargs
 ):
     """Instantiates the ResNet, SEResNet architecture.
@@ -238,8 +241,32 @@ def SENet(
     backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
 
     residual_block = model_params.residual_block
-    init_filters = model_params.init_filters
     bn_params = get_bn_params()
+
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) < 3:
+        print('Error: stride_size length must be 3 or more')
+        return None
+
+    if len(stride_size) - 1 != len(repetitions):
+        print('Error: stride_size length must be equal to repetitions length - 1')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
 
     # define input
     if input_tensor is None:
@@ -255,7 +282,7 @@ def SENet(
     if model_params.input_3x3:
 
         x = layers.ZeroPadding3D(1)(x)
-        x = layers.Conv3D(init_filters, (3, 3, 3), strides=2,
+        x = layers.Conv3D(init_filters, (3, 3, 3), strides=stride_size[0],
                           use_bias=False, kernel_initializer='he_uniform')(x)
         x = layers.BatchNormalization(**bn_params)(x)
         x = layers.Activation('relu')(x)
@@ -274,17 +301,19 @@ def SENet(
 
     else:
         x = layers.ZeroPadding3D(3)(x)
-        x = layers.Conv3D(init_filters, (7, 7, 7), strides=2, use_bias=False,
+        x = layers.Conv3D(init_filters, (7, 7, 7), strides=stride_size[0], use_bias=False,
                           kernel_initializer='he_uniform')(x)
         x = layers.BatchNormalization(**bn_params)(x)
         x = layers.Activation('relu')(x)
 
     x = layers.ZeroPadding3D(1)(x)
-    x = layers.MaxPooling3D((3, 3, 3), strides=2)(x)
+    pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[1])(x)
 
     # body of resnet
-    filters = model_params.init_filters * 2
-    for i, stage in enumerate(model_params.repetitions):
+    filters = init_filters * 2
+    stride_count = 2
+    for i, stage in enumerate(repetitions):
 
         # increase number of filters with each stage
         filters *= 2
@@ -293,15 +322,32 @@ def SENet(
 
             # decrease spatial dimensions for each stage (except first, because we have maxpool before)
             if i == 0 and j == 0:
-                x = residual_block(filters, reduction=model_params.reduction,
-                                   strides=1, groups=model_params.groups, is_first=True, **kwargs)(x)
+                x = residual_block(
+                    filters,
+                    reduction=model_params.reduction,
+                    strides=1,
+                    groups=model_params.groups,
+                    is_first=True,
+                    **kwargs
+                )(x)
 
             elif i != 0 and j == 0:
-                x = residual_block(filters, reduction=model_params.reduction,
-                                   strides=2, groups=model_params.groups, **kwargs)(x)
+                x = residual_block(
+                    filters,
+                    reduction=model_params.reduction,
+                    strides=stride_size[stride_count],
+                    groups=model_params.groups,
+                    **kwargs
+                )(x)
+                stride_count += 1
             else:
-                x = residual_block(filters, reduction=model_params.reduction,
-                                   strides=1, groups=model_params.groups, **kwargs)(x)
+                x = residual_block(
+                    filters,
+                    reduction=model_params.reduction,
+                    strides=1,
+                    groups=model_params.groups,
+                    **kwargs
+                )(x)
 
     if include_top:
         x = layers.GlobalAveragePooling3D()(x)
@@ -334,38 +380,84 @@ def SENet(
 
 MODELS_PARAMS = {
     'seresnet50': ModelParams(
-        'seresnet50', repetitions=(3, 4, 6, 3), residual_block=SEResNetBottleneck,
-        groups=1, reduction=16, init_filters=64, input_3x3=False, dropout=None,
+        'seresnet50',
+        repetitions=(3, 4, 6, 3),
+        residual_block=SEResNetBottleneck,
+        groups=1,
+        reduction=16,
+        init_filters=64,
+        input_3x3=False,
+        dropout=None,
     ),
 
     'seresnet101': ModelParams(
-        'seresnet101', repetitions=(3, 4, 23, 3), residual_block=SEResNetBottleneck,
-        groups=1, reduction=16, init_filters=64, input_3x3=False, dropout=None,
+        'seresnet101',
+        repetitions=(3, 4, 23, 3),
+        residual_block=SEResNetBottleneck,
+        groups=1,
+        reduction=16,
+        init_filters=64,
+        input_3x3=False,
+        dropout=None,
     ),
 
     'seresnet152': ModelParams(
-        'seresnet152', repetitions=(3, 8, 36, 3), residual_block=SEResNetBottleneck,
-        groups=1, reduction=16, init_filters=64, input_3x3=False, dropout=None,
+        'seresnet152',
+        repetitions=(3, 8, 36, 3),
+        residual_block=SEResNetBottleneck,
+        groups=1,
+        reduction=16,
+        init_filters=64,
+        input_3x3=False,
+        dropout=None,
     ),
 
     'seresnext50': ModelParams(
-        'seresnext50', repetitions=(3, 4, 6, 3), residual_block=SEResNeXtBottleneck,
-        groups=32, reduction=16, init_filters=64, input_3x3=False, dropout=None,
+        'seresnext50',
+        repetitions=(3, 4, 6, 3),
+        residual_block=SEResNeXtBottleneck,
+        groups=32,
+        reduction=16,
+        init_filters=64,
+        input_3x3=False,
+        dropout=None,
     ),
 
     'seresnext101': ModelParams(
-        'seresnext101', repetitions=(3, 4, 23, 3), residual_block=SEResNeXtBottleneck,
-        groups=32, reduction=16, init_filters=64, input_3x3=False, dropout=None,
+        'seresnext101',
+        repetitions=(3, 4, 23, 3),
+        residual_block=SEResNeXtBottleneck,
+        groups=32,
+        reduction=16,
+        init_filters=64,
+        input_3x3=False,
+        dropout=None,
     ),
 
     'senet154': ModelParams(
-        'senet154', repetitions=(3, 8, 36, 3), residual_block=SEBottleneck,
-        groups=64, reduction=16, init_filters=64, input_3x3=True, dropout=0.2,
+        'senet154',
+        repetitions=(3, 8, 36, 3),
+        residual_block=SEBottleneck,
+        groups=64,
+        reduction=16,
+        init_filters=64,
+        input_3x3=True,
+        dropout=0.2,
     ),
 }
 
 
-def SEResNet50(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SEResNet50(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        init_filters=64,
+        repetitions=(3, 4, 23, 3),
+        **kwargs
+):
     return SENet(
         MODELS_PARAMS['seresnet50'],
         input_shape=input_shape,
@@ -373,11 +465,24 @@ def SEResNet50(input_shape=None, input_tensor=None, weights=None, classes=1000, 
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        init_filters=init_filters,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def SEResNet101(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SEResNet101(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        init_filters=64,
+        repetitions=(3, 4, 6, 3),
+        **kwargs
+):
     return SENet(
         MODELS_PARAMS['seresnet101'],
         input_shape=input_shape,
@@ -385,11 +490,24 @@ def SEResNet101(input_shape=None, input_tensor=None, weights=None, classes=1000,
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        init_filters=init_filters,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def SEResNet152(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SEResNet152(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        init_filters=64,
+        repetitions=(3, 8, 36, 3),
+        **kwargs
+):
     return SENet(
         MODELS_PARAMS['seresnet152'],
         input_shape=input_shape,
@@ -397,11 +515,24 @@ def SEResNet152(input_shape=None, input_tensor=None, weights=None, classes=1000,
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        init_filters=init_filters,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def SEResNeXt50(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SEResNeXt50(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        init_filters=64,
+        repetitions=(3, 4, 6, 3),
+        **kwargs
+):
     return SENet(
         MODELS_PARAMS['seresnext50'],
         input_shape=input_shape,
@@ -409,11 +540,24 @@ def SEResNeXt50(input_shape=None, input_tensor=None, weights=None, classes=1000,
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        init_filters=init_filters,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def SEResNeXt101(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SEResNeXt101(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        init_filters=64,
+        repetitions=(3, 4, 23, 3),
+        **kwargs
+):
     return SENet(
         MODELS_PARAMS['seresnext101'],
         input_shape=input_shape,
@@ -421,11 +565,24 @@ def SEResNeXt101(input_shape=None, input_tensor=None, weights=None, classes=1000
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        init_filters=init_filters,
+        repetitions=repetitions,
         **kwargs
     )
 
 
-def SENet154(input_shape=None, input_tensor=None, weights=None, classes=1000, include_top=True, **kwargs):
+def SENet154(
+        input_shape=None,
+        input_tensor=None,
+        weights=None,
+        classes=1000,
+        include_top=False,
+        stride_size=2,
+        init_filters=64,
+        repetitions=(3, 8, 36, 3),
+        **kwargs
+):
     return SENet(
         MODELS_PARAMS['senet154'],
         input_shape=input_shape,
@@ -433,6 +590,9 @@ def SENet154(input_shape=None, input_tensor=None, weights=None, classes=1000, in
         include_top=include_top,
         classes=classes,
         weights=weights,
+        stride_size=stride_size,
+        init_filters=init_filters,
+        repetitions=repetitions,
         **kwargs
     )
 

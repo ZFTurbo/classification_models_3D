@@ -11,6 +11,8 @@ from .models import inception_resnet_v2 as irv2
 from .models import inception_v3 as iv3
 from .models import mobilenet as mb1
 from .models import mobilenet_v2 as mb2
+from .models import efficientnet as eff
+from .models import efficientnet_v2 as eff2
 
 
 class ModelsFactory:
@@ -53,6 +55,25 @@ class ModelsFactory:
         # MobileNet
         'mobilenet': [mb1.MobileNet, mb1.preprocess_input],
         'mobilenetv2': [mb2.MobileNetV2, mb2.preprocess_input],
+
+        # EfficientNet
+        'efficientnetb0': [eff.EfficientNetB0, eff.preprocess_input],
+        'efficientnetb1': [eff.EfficientNetB1, eff.preprocess_input],
+        'efficientnetb2': [eff.EfficientNetB2, eff.preprocess_input],
+        'efficientnetb3': [eff.EfficientNetB3, eff.preprocess_input],
+        'efficientnetb4': [eff.EfficientNetB4, eff.preprocess_input],
+        'efficientnetb5': [eff.EfficientNetB5, eff.preprocess_input],
+        'efficientnetb6': [eff.EfficientNetB6, eff.preprocess_input],
+        'efficientnetb7': [eff.EfficientNetB7, eff.preprocess_input],
+
+        # EfficientNet v2
+        'efficientnetv2-b0': [eff2.EfficientNetV2B0, eff2.preprocess_input],
+        'efficientnetv2-b1': [eff2.EfficientNetV2B1, eff2.preprocess_input],
+        'efficientnetv2-b2': [eff2.EfficientNetV2B2, eff2.preprocess_input],
+        'efficientnetv2-b3': [eff2.EfficientNetV2B3, eff2.preprocess_input],
+        'efficientnetv2-s': [eff2.EfficientNetV2S, eff2.preprocess_input],
+        'efficientnetv2-m': [eff2.EfficientNetV2M, eff2.preprocess_input],
+        'efficientnetv2-l': [eff2.EfficientNetV2L, eff2.preprocess_input],
     }
 
     @property

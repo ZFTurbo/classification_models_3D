@@ -25,14 +25,16 @@ models = None
 keras_utils = None
 
 
-def conv3d_bn(x,
-              filters,
-              num_row,
-              num_col,
-              num_z,
-              padding='same',
-              strides=(1, 1, 1),
-              name=None):
+def conv3d_bn(
+        x,
+        filters,
+        num_row,
+        num_col,
+        num_z,
+        padding='same',
+        strides=(1, 1, 1),
+        name=None
+):
     """Utility function to apply conv + BN.
 
     # Arguments
@@ -70,13 +72,16 @@ def conv3d_bn(x,
     return x
 
 
-def InceptionV3(include_top=True,
-                weights='imagenet',
-                input_tensor=None,
-                input_shape=None,
-                pooling=None,
-                classes=1000,
-                **kwargs):
+def InceptionV3(
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        input_shape=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        **kwargs
+):
     """Instantiates the Inception v3 architecture.
 
     Optionally loads weights pre-trained on ImageNet.
@@ -133,6 +138,27 @@ def InceptionV3(include_top=True,
         raise ValueError('If using `weights` as `"imagenet"` with `include_top`'
                          ' as true, `classes` should be 1000')
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) != 5:
+        print('Error: stride_size length must be exactly 5')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     if input_tensor is None:
         img_input = layers.Input(shape=input_shape)
     else:
@@ -146,14 +172,16 @@ def InceptionV3(include_top=True,
     else:
         channel_axis = 4
 
-    x = conv3d_bn(img_input, 32, 3, 3, 3, strides=(2, 2, 2), padding='valid')
+    x = conv3d_bn(img_input, 32, 3, 3, 3, strides=stride_size[0], padding='valid')
     x = conv3d_bn(x, 32, 3, 3, 3, padding='valid')
     x = conv3d_bn(x, 64, 3, 3, 3)
-    x = layers.MaxPooling3D((3, 3, 3), strides=(2, 2, 2))(x)
+    pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[1])(x)
 
     x = conv3d_bn(x, 80, 1, 1, 1, padding='valid')
     x = conv3d_bn(x, 192, 3, 3, 3, padding='valid')
-    x = layers.MaxPooling3D((3, 3, 3), strides=(2, 2, 2))(x)
+    pool = (stride_size[2][0] + 1, stride_size[2][1] + 1, stride_size[2][2] + 1)
+    x = layers.MaxPooling3D(pool, strides=stride_size[2])(x)
 
     # mixed 0: 35 x 35 x 256
     branch1x1 = conv3d_bn(x, 64, 1, 1, 1)
@@ -213,14 +241,15 @@ def InceptionV3(include_top=True,
         name='mixed2')
 
     # mixed 3: 17 x 17 x 768
-    branch3x3 = conv3d_bn(x, 384, 3, 3, 3, strides=(2, 2, 2), padding='valid')
+    branch3x3 = conv3d_bn(x, 384, 3, 3, 3, strides=stride_size[3], padding='valid')
 
     branch3x3dbl = conv3d_bn(x, 64, 1, 1, 1)
     branch3x3dbl = conv3d_bn(branch3x3dbl, 96, 3, 3, 3)
     branch3x3dbl = conv3d_bn(
-        branch3x3dbl, 96, 3, 3, 3, strides=(2, 2, 2), padding='valid')
+        branch3x3dbl, 96, 3, 3, 3, strides=stride_size[3], padding='valid')
 
-    branch_pool = layers.MaxPooling3D((3, 3, 3), strides=(2, 2, 2))(x)
+    pool = (stride_size[3][0] + 1, stride_size[3][1] + 1, stride_size[3][2] + 1)
+    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[3])(x)
     x = layers.concatenate(
         [branch3x3, branch3x3dbl, branch_pool],
         axis=channel_axis,
@@ -295,15 +324,16 @@ def InceptionV3(include_top=True,
     # mixed 8: 8 x 8 x 1280
     branch3x3 = conv3d_bn(x, 192, 1, 1, 1)
     branch3x3 = conv3d_bn(branch3x3, 320, 3, 3, 3,
-                          strides=(2, 2, 2), padding='valid')
+                          strides=stride_size[4], padding='valid')
 
     branch7x7x3 = conv3d_bn(x, 192, 1, 1, 1)
     branch7x7x3 = conv3d_bn(branch7x7x3, 192, 1, 7, 1)
     branch7x7x3 = conv3d_bn(branch7x7x3, 192, 7, 1, 1)
     branch7x7x3 = conv3d_bn(
-        branch7x7x3, 192, 3, 3, 3, strides=(2, 2, 2), padding='valid')
+        branch7x7x3, 192, 3, 3, 3, strides=stride_size[4], padding='valid')
 
-    branch_pool = layers.MaxPooling3D((3, 3, 3), strides=(2, 2, 2))(x)
+    pool = (stride_size[4][0] + 1, stride_size[4][1] + 1, stride_size[4][2] + 1)
+    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[4])(x)
     x = layers.concatenate(
         [branch3x3, branch7x7x3, branch_pool],
         axis=channel_axis,

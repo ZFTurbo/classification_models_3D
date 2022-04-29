@@ -146,14 +146,17 @@ def correct_pad(backend, inputs, kernel_size):
             (correct[2] - adjust[2], correct[2]))
 
 
-def MobileNetV2(input_shape=None,
-                alpha=1.0,
-                include_top=True,
-                weights='imagenet',
-                input_tensor=None,
-                pooling=None,
-                classes=1000,
-                **kwargs):
+def MobileNetV2(
+        input_shape=None,
+        alpha=1.0,
+        include_top=False,
+        weights='imagenet',
+        input_tensor=None,
+        pooling=None,
+        classes=1000,
+        stride_size=2,
+        **kwargs
+):
     """Instantiates the MobileNetV2 architecture.
 
     # Arguments
@@ -220,6 +223,27 @@ def MobileNetV2(input_shape=None,
     if weights == 'imagenet' and include_top and classes != 1000:
         raise ValueError('If using `weights` as `"imagenet"` with `include_top` '
                          'as true, `classes` should be 1000')
+
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) != 5:
+        print('Error: stride_size length must be exactly 5')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
 
     # Determine proper input shape and default size.
     # If both input_shape and input_tensor are used, they should match
@@ -326,7 +350,7 @@ def MobileNetV2(input_shape=None,
                              name='Conv1_pad')(img_input)
     x = layers.Conv3D(first_block_filters,
                       kernel_size=3,
-                      strides=(2, 2, 2),
+                      strides=stride_size[0],
                       padding='valid',
                       use_bias=False,
                       name='Conv1')(x)
@@ -339,19 +363,19 @@ def MobileNetV2(input_shape=None,
     x = _inverted_res_block(x, filters=16, alpha=alpha, stride=1,
                             expansion=1, block_id=0)
 
-    x = _inverted_res_block(x, filters=24, alpha=alpha, stride=2,
+    x = _inverted_res_block(x, filters=24, alpha=alpha, stride=stride_size[1],
                             expansion=6, block_id=1)
     x = _inverted_res_block(x, filters=24, alpha=alpha, stride=1,
                             expansion=6, block_id=2)
 
-    x = _inverted_res_block(x, filters=32, alpha=alpha, stride=2,
+    x = _inverted_res_block(x, filters=32, alpha=alpha, stride=stride_size[2],
                             expansion=6, block_id=3)
     x = _inverted_res_block(x, filters=32, alpha=alpha, stride=1,
                             expansion=6, block_id=4)
     x = _inverted_res_block(x, filters=32, alpha=alpha, stride=1,
                             expansion=6, block_id=5)
 
-    x = _inverted_res_block(x, filters=64, alpha=alpha, stride=2,
+    x = _inverted_res_block(x, filters=64, alpha=alpha, stride=stride_size[3],
                             expansion=6, block_id=6)
     x = _inverted_res_block(x, filters=64, alpha=alpha, stride=1,
                             expansion=6, block_id=7)
@@ -367,7 +391,7 @@ def MobileNetV2(input_shape=None,
     x = _inverted_res_block(x, filters=96, alpha=alpha, stride=1,
                             expansion=6, block_id=12)
 
-    x = _inverted_res_block(x, filters=160, alpha=alpha, stride=2,
+    x = _inverted_res_block(x, filters=160, alpha=alpha, stride=stride_size[4],
                             expansion=6, block_id=13)
     x = _inverted_res_block(x, filters=160, alpha=alpha, stride=1,
                             expansion=6, block_id=14)
