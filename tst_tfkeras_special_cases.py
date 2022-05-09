@@ -52,7 +52,7 @@ def tst_keras():
     from classification_models_3D.tfkeras import Classifiers
 
     print('Tensorflow version: {}'.format(__version__))
-    if 0:
+    if 1:
         type = 'densenet121'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -68,7 +68,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'efficientnetb0'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -82,7 +82,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'efficientnetv2-b0'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -96,7 +96,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'inceptionresnetv2'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -110,7 +110,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'inceptionv3'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -124,7 +124,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'mobilenet'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -138,7 +138,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'mobilenetv2'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -152,7 +152,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'resnet18'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -168,7 +168,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'resnext50'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
@@ -184,7 +184,7 @@ def tst_keras():
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()
 
-    if 0:
+    if 1:
         type = 'seresnet101'
         print('Go for {}'.format(type))
         modelPoint, preprocess_input = Classifiers.get(type)
