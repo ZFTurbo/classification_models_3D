@@ -1,7 +1,7 @@
 # Release notes
 All notable changes to this project will be documented in this file.
 
-##  v1.0.5
+##  v1.0.6
 
 Padding fixes for `mobilenetv2`, `inceptionresnetv2` and `inceptionv3`. It's needed for correct work with segmentation models.
 
