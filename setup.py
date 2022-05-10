@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='classification_models_3D',
-    version='1.0.4',
+    version='1.0.5',
     author='Roman Sol (ZFTurbo)',
     packages=['classification_models_3D', 'classification_models_3D/models'],
     url='https://github.com/ZFTurbo/classification_models_3D',
