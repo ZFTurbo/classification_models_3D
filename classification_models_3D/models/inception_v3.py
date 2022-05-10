@@ -176,12 +176,12 @@ def InceptionV3(
     x = conv3d_bn(x, 32, 3, 3, 3, padding='same')
     x = conv3d_bn(x, 64, 3, 3, 3)
     pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
-    x = layers.MaxPooling3D(pool, strides=stride_size[1])(x)
+    x = layers.MaxPooling3D(pool, strides=stride_size[1], padding='same')(x)
 
     x = conv3d_bn(x, 80, 1, 1, 1, padding='same')
     x = conv3d_bn(x, 192, 3, 3, 3, padding='same')
     pool = (stride_size[2][0] + 1, stride_size[2][1] + 1, stride_size[2][2] + 1)
-    x = layers.MaxPooling3D(pool, strides=stride_size[2])(x)
+    x = layers.MaxPooling3D(pool, strides=stride_size[2], padding='same')(x)
 
     # mixed 0: 35 x 35 x 256
     branch1x1 = conv3d_bn(x, 64, 1, 1, 1)
