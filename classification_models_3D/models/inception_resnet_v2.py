@@ -262,13 +262,13 @@ def InceptionResNetV2(
             img_input = input_tensor
 
     # Stem block: 35 x 35 x 192
-    x = conv3d_bn(img_input, 32, 3, strides=stride_size[0], padding='valid')
-    x = conv3d_bn(x, 32, 3, padding='valid')
+    x = conv3d_bn(img_input, 32, 3, strides=stride_size[0], padding='same')
+    x = conv3d_bn(x, 32, 3, padding='same')
     x = conv3d_bn(x, 64, 3)
     pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
     x = layers.MaxPooling3D(pool, strides=stride_size[1])(x)
-    x = conv3d_bn(x, 80, 1, padding='valid')
-    x = conv3d_bn(x, 192, 3, padding='valid')
+    x = conv3d_bn(x, 80, 1, padding='same')
+    x = conv3d_bn(x, 192, 3, padding='same')
     pool = (stride_size[2][0] + 1, stride_size[2][1] + 1, stride_size[2][2] + 1)
     x = layers.MaxPooling3D(pool, strides=stride_size[2])(x)
 
@@ -293,12 +293,12 @@ def InceptionResNetV2(
                                    block_idx=block_idx)
 
     # Mixed 6a (Reduction-A block): 17 x 17 x 1088
-    branch_0 = conv3d_bn(x, 384, 3, strides=stride_size[3], padding='valid')
+    branch_0 = conv3d_bn(x, 384, 3, strides=stride_size[3], padding='same')
     branch_1 = conv3d_bn(x, 256, 1)
     branch_1 = conv3d_bn(branch_1, 256, 3)
-    branch_1 = conv3d_bn(branch_1, 384, 3, strides=stride_size[3], padding='valid')
+    branch_1 = conv3d_bn(branch_1, 384, 3, strides=stride_size[3], padding='same')
     pool = (stride_size[3][0] + 1, stride_size[3][1] + 1, stride_size[3][2] + 1)
-    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[3], padding='valid')(x)
+    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[3], padding='same')(x)
     branches = [branch_0, branch_1, branch_pool]
     x = layers.Concatenate(axis=channel_axis, name='mixed_6a')(branches)
 
@@ -311,14 +311,14 @@ def InceptionResNetV2(
 
     # Mixed 7a (Reduction-B block): 8 x 8 x 2080
     branch_0 = conv3d_bn(x, 256, 1)
-    branch_0 = conv3d_bn(branch_0, 384, 3, strides=stride_size[4], padding='valid')
+    branch_0 = conv3d_bn(branch_0, 384, 3, strides=stride_size[4], padding='same')
     branch_1 = conv3d_bn(x, 256, 1)
-    branch_1 = conv3d_bn(branch_1, 288, 3, strides=stride_size[4], padding='valid')
+    branch_1 = conv3d_bn(branch_1, 288, 3, strides=stride_size[4], padding='same')
     branch_2 = conv3d_bn(x, 256, 1)
     branch_2 = conv3d_bn(branch_2, 288, 3)
-    branch_2 = conv3d_bn(branch_2, 320, 3, strides=stride_size[4], padding='valid')
+    branch_2 = conv3d_bn(branch_2, 320, 3, strides=stride_size[4], padding='same')
     pool = (stride_size[4][0] + 1, stride_size[4][1] + 1, stride_size[4][2] + 1)
-    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[4], padding='valid')(x)
+    branch_pool = layers.MaxPooling3D(pool, strides=stride_size[4], padding='same')(x)
     branches = [branch_0, branch_1, branch_2, branch_pool]
     x = layers.Concatenate(axis=channel_axis, name='mixed_7a')(branches)
 
