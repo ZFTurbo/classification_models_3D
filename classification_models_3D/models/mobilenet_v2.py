@@ -141,9 +141,13 @@ def correct_pad(backend, inputs, kernel_size):
 
     correct = (kernel_size[0] // 2, kernel_size[1] // 2, kernel_size[2] // 2)
 
-    return ((correct[0] - adjust[0], correct[0]),
-            (correct[1] - adjust[1], correct[1]),
-            (correct[2] - adjust[2], correct[2]))
+    ret = (
+        (correct[0] - adjust[0], correct[0]),
+        (correct[1] - adjust[1], correct[1]),
+        (correct[2] - adjust[2], correct[2])
+    )
+
+    return ret
 
 
 def MobileNetV2(
@@ -478,9 +482,9 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
         prefix = 'expanded_conv_'
 
     # Depthwise
-    if stride == 2:
-        x = layers.ZeroPadding3D(padding=correct_pad(backend, x, 3),
-                                 name=prefix + 'pad')(x)
+    if stride == 2 or stride == (2, 2, 2):
+        pd = correct_pad(backend, x, 3)
+        x = layers.ZeroPadding3D(padding=pd, name=prefix + 'pad')(x)
     x = DepthwiseConv3D(kernel_size=3,
                                strides=stride,
                                activation=None,
