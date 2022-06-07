@@ -1276,7 +1276,7 @@ EfficientNetV2M.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2M")
 EfficientNetV2L.__doc__ = BASE_DOCSTRING.format(name="EfficientNetV2L")
 
 
-def preprocess_input(x, data_format=None):  # pylint: disable=unused-argument
+def preprocess_input(x, data_format=None, **kwargs):  # pylint: disable=unused-argument
     """A placeholder method for backward compatibility.
 
     The preprocessing logic has been included in the EfficientNetV2 model

@@ -789,7 +789,7 @@ EfficientNetB6.__doc__ = BASE_DOCSTRING.format(name='EfficientNetB6')
 EfficientNetB7.__doc__ = BASE_DOCSTRING.format(name='EfficientNetB7')
 
 
-def preprocess_input(x, data_format=None):  # pylint: disable=unused-argument
+def preprocess_input(x, data_format=None, **kwargs):  # pylint: disable=unused-argument
     """A placeholder method for backward compatibility.
 
     The preprocessing logic has been included in the efficientnet model
