@@ -19,6 +19,7 @@ This repository is based on great [classification_models](https://github.com/qub
 - [MobileNet v2](https://arxiv.org/abs/1801.04381)
 - [EfficientNet](https://arxiv.org/abs/1905.11946) [B0, B1, B2, B3, B4, B5, B6, B7]
 - [EfficientNet v2](https://arxiv.org/abs/2104.00298) [B0, B1, B2, B3, S, M, L]
+- [ConvNeXt](https://arxiv.org/pdf/2201.03545.pdf)
 
 ### Installation 
 
@@ -46,7 +47,7 @@ All possible nets for `Classifiers.get()` method: `'resnet18', 'resnet34', 'resn
         'inceptionresnetv2', 'inceptionv3',  'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
         'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7', 'efficientnetv2-b0',
         'efficientnetv2-b1', 'efficientnetv2-b2', 'efficientnetv2-b3', 'efficientnetv2-s', 'efficientnetv2-m',
-        'efficientnetv2-l'`
+        'efficientnetv2-l', 'convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'convnext_xlarge'`
 
 ### Convert imagenet weights (2D -> 3D)
 

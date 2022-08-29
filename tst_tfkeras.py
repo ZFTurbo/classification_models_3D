@@ -62,17 +62,25 @@ def tst_keras():
         'inceptionresnetv2', 'inceptionv3',  'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
         'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7', 'efficientnetv2-b0',
         'efficientnetv2-b1', 'efficientnetv2-b2', 'efficientnetv2-b3', 'efficientnetv2-s', 'efficientnetv2-m',
-        'efficientnetv2-l'
+        'efficientnetv2-l', 'convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'convnext_xlarge'
     ]
     list_of_models = [
-        'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
-        'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7', 'efficientnetv2-b0',
-        'efficientnetv2-b1', 'efficientnetv2-b2', 'efficientnetv2-b3', 'efficientnetv2-s', 'efficientnetv2-m',
-        'efficientnetv2-l'
+        'convnext_tiny'
     ]
     for type in list_of_models:
         modelPoint, preprocess_input = Classifiers.get(type)
-        model = modelPoint(input_shape=(128, 128, 128, 3), include_top=include_top, weights=use_weights)
+        model = modelPoint(
+            input_shape=(128, 128, 128, 3),
+            include_top=include_top,
+            stride_size=(
+                (2, 2, 2),
+                (2, 2, 2),
+                (2, 2, 2),
+                (2, 2, 2),
+                (2, 2, 2),
+            ),
+            weights=use_weights
+        )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
         reset_default_graph()

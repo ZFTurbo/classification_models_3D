@@ -13,6 +13,7 @@ from .models import mobilenet as mb1
 from .models import mobilenet_v2 as mb2
 from .models import efficientnet as eff
 from .models import efficientnet_v2 as eff2
+from .models import convnext as cnext
 
 
 class ModelsFactory:
@@ -74,6 +75,13 @@ class ModelsFactory:
         'efficientnetv2-s': [eff2.EfficientNetV2S, eff2.preprocess_input],
         'efficientnetv2-m': [eff2.EfficientNetV2M, eff2.preprocess_input],
         'efficientnetv2-l': [eff2.EfficientNetV2L, eff2.preprocess_input],
+
+        # ConvNext
+        'convnext_tiny': [cnext.ConvNeXtTiny, cnext.preprocess_input],
+        'convnext_small': [cnext.ConvNeXtSmall, cnext.preprocess_input],
+        'convnext_base': [cnext.ConvNeXtBase, cnext.preprocess_input],
+        'convnext_large': [cnext.ConvNeXtLarge, cnext.preprocess_input],
+        'convnext_xlarge': [cnext.ConvNeXtXLarge, cnext.preprocess_input],
     }
 
     @property

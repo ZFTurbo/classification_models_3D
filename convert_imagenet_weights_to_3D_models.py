@@ -35,6 +35,11 @@ from keras.applications.efficientnet import EfficientNetB5
 from keras.applications.efficientnet import EfficientNetB6
 from keras.applications.efficientnet import EfficientNetB7
 from keras.applications.efficientnet_v2 import *
+from keras.applications.convnext import ConvNeXtTiny
+from keras.applications.convnext import ConvNeXtSmall
+from keras.applications.convnext import ConvNeXtBase
+from keras.applications.convnext import ConvNeXtLarge
+from keras.applications.convnext import ConvNeXtXLarge
 
 
 MODELS_PATH = './'
@@ -111,6 +116,43 @@ def convert_weights(m2, m3, out_path, target_channel):
                 weights_3D[1] = weights_2D[1][:weights_3D[1].shape[0]]
 
             m3.layers[i].set_weights(weights_3D)
+        elif layer_2D.__class__.__name__ == 'Sequential' and 'convnext' in layer_2D.name:
+            print('Convnext', type(weights_2D), len(weights_2D), weights_2D[0].shape, weights_3D[0].shape)
+            print(layer_2D.output_shape)
+            print(layer_3D.output_shape)
+
+            if 'downsampling' in layer_2D.name:
+                index_w = 2
+                index_b = 3
+                layer_norm_0 = 0
+                layer_norm_1 = 1
+            else:
+                index_w = 0
+                index_b = 1
+                layer_norm_0 = 2
+                layer_norm_1 = 3
+
+            weights_3D[index_w][...] = 0
+            if target_channel == 2:
+                for j in range(weights_3D[index_w].shape[2]):
+                    weights_3D[index_w][:, :, j, :, :] = weights_2D[index_w] / weights_3D[index_w].shape[2]
+            if target_channel == 1:
+                for j in range(weights_3D[index_w].shape[1]):
+                    weights_3D[index_w][:, j, :, :, :] = weights_2D[index_w] / weights_3D[index_w].shape[1]
+            else:
+                for j in range(weights_3D[index_w].shape[0]):
+                    weights_3D[index_w][j, :, :, :, :] = weights_2D[index_w] / weights_3D[index_w].shape[0]
+
+            # Bias
+            if len(weights_3D) > 1:
+                print(weights_3D[index_b].shape, weights_2D[index_b].shape)
+                weights_3D[index_b] = weights_2D[index_b][:weights_3D[index_b].shape[0]]
+
+            # layer norm
+            weights_3D[layer_norm_0] = weights_2D[layer_norm_0]
+            weights_3D[layer_norm_1] = weights_2D[layer_norm_1]
+
+            m3.layers[i].set_weights(weights_3D)
         elif layer_2D.__class__.__name__ == 'Normalization' and i == 2:
             if len(weights_3D) == 0:
                 # Effnet v2 (it's in parameters)
@@ -134,7 +176,10 @@ def convert_models():
         'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
         'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7', 'efficientnetv2-b0',
         'efficientnetv2-b1', 'efficientnetv2-b2', 'efficientnetv2-b3', 'efficientnetv2-s', 'efficientnetv2-m',
-        'efficientnetv2-l'
+        'efficientnetv2-l',  'convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'convnext_xlarge'
+    ]
+    list_to_check = [
+       'convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'convnext_xlarge'
     ]
 
     for t in list_to_check:
@@ -189,6 +234,22 @@ def convert_models():
                 input_shape=shape_size_2D,
                 pooling='avg',
             )
+        elif t in ['convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'convnext_xlarge']:
+
+            func = {
+                'convnext_tiny': ConvNeXtTiny,
+                'convnext_small': ConvNeXtSmall,
+                'convnext_base': ConvNeXtBase,
+                'convnext_large': ConvNeXtLarge,
+                'convnext_xlarge': ConvNeXtXLarge,
+            }
+
+            model2D = func[t](
+                include_top=include_top,
+                weights='imagenet',
+                input_shape=shape_size_2D,
+                pooling='avg',
+            )
         else:
             model2D, preprocess_input = Classifiers_2D.get(t)
             model2D = model2D(
@@ -220,7 +281,7 @@ def gen_text_with_links():
         'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
         'efficientnetb4', 'efficientnetb5', 'efficientnetb6', 'efficientnetb7', 'efficientnetv2-b0',
         'efficientnetv2-b1', 'efficientnetv2-b2', 'efficientnetv2-b3', 'efficientnetv2-s', 'efficientnetv2-m',
-        'efficientnetv2-l'
+        'efficientnetv2-l', 'convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'convnext_xlarge'
     ]
     for model_name in list_to_check:
         files = glob.glob('./converter/{}_*.h5'.format(model_name))
@@ -235,12 +296,12 @@ def gen_text_with_links():
             print('    \'dataset\': \'imagenet\','.format(model_name))
             print('    \'classes\': 1000,'.format(model_name))
             print('    \'include_top\': {},'.format(arr[-1]))
-            print('    \'url\': \'https://github.com/ZFTurbo/classification_models_3D/releases/download/v1.0.4//{}\','.format(file_name))
+            print('    \'url\': \'https://github.com/ZFTurbo/classification_models_3D/releases/download/v1.0.4/{}\','.format(file_name))
             print('    \'name\': \'{}\','.format(file_name))
             print('    \'md5\': \'{}\','.format(m5))
             print('},')
 
 
 if __name__ == '__main__':
-    # convert_models()
+    convert_models()
     gen_text_with_links()

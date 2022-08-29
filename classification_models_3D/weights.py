@@ -408,6 +408,56 @@ WEIGHTS_COLLECTION = [
         'name': 'efficientnetv2-l_inp_channel_3_tch_0_top_False.h5',
         'md5': '985b5fa4fa572a02c60a01605e112192',
     },
+    # convnext_tiny
+    {
+        'model': 'convnext_tiny',
+        'dataset': 'imagenet',
+        'classes': 1000,
+        'include_top': False,
+        'url': 'https://github.com/ZFTurbo/classification_models_3D/releases/download/v1.0.4/convnext_tiny_inp_channel_3_tch_0_top_False.h5',
+        'name': 'convnext_tiny_inp_channel_3_tch_0_top_False.h5',
+        'md5': '59c10a59d579c9c80b15bfa15338c5eb',
+    },
+    # convnext_small
+    {
+        'model': 'convnext_small',
+        'dataset': 'imagenet',
+        'classes': 1000,
+        'include_top': False,
+        'url': 'https://github.com/ZFTurbo/classification_models_3D/releases/download/v1.0.4/convnext_small_inp_channel_3_tch_0_top_False.h5',
+        'name': 'convnext_small_inp_channel_3_tch_0_top_False.h5',
+        'md5': '00493a929302889d846f17a1bfdc0e42',
+    },
+    # convnext_base
+    {
+        'model': 'convnext_base',
+        'dataset': 'imagenet',
+        'classes': 1000,
+        'include_top': False,
+        'url': 'https://github.com/ZFTurbo/classification_models_3D/releases/download/v1.0.4/convnext_base_inp_channel_3_tch_0_top_False.h5',
+        'name': 'convnext_base_inp_channel_3_tch_0_top_False.h5',
+        'md5': 'c5d2585da9d3f3a6d7443cb19e5cea44',
+    },
+    # convnext_large
+    {
+        'model': 'convnext_large',
+        'dataset': 'imagenet',
+        'classes': 1000,
+        'include_top': False,
+        'url': 'https://github.com/ZFTurbo/classification_models_3D/releases/download/v1.0.4/convnext_large_inp_channel_3_tch_0_top_False.h5',
+        'name': 'convnext_large_inp_channel_3_tch_0_top_False.h5',
+        'md5': 'e622f26fcbac66cd3d71cdf1a2a785ff',
+    },
+    # convnext_xlarge
+    {
+        'model': 'convnext_xlarge',
+        'dataset': 'imagenet',
+        'classes': 1000,
+        'include_top': False,
+        'url': 'https://github.com/ZFTurbo/classification_models_3D/releases/download/v1.0.4/convnext_xlarge_inp_channel_3_tch_0_top_False.h5',
+        'name': 'convnext_xlarge_inp_channel_3_tch_0_top_False.h5',
+        'md5': '41731e660e7524a5311fd55e9a2f85c1',
+    },
 
     # resnet18
     {
@@ -629,4 +679,5 @@ WEIGHTS_COLLECTION = [
         'name': 'mobilenetv2_inp_channel_3_tch_0_top_True.h5',
         'md5': 'edf2cea91f5e343cd66c489c9811bdf0',
     },
+
 ]
