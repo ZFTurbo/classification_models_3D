@@ -337,6 +337,7 @@ def ConvNeXt(
     input_tensor=None,
     input_shape=None,
     pooling=None,
+    stride_size=(4, 2, 2, 2),
     classes=1000,
     classifier_activation="softmax",
     **kwargs
@@ -417,6 +418,26 @@ def ConvNeXt(
         else:
             img_input = input_tensor
 
+    # if stride_size is scalar make it tuple of length 5 with elements tuple of size 3
+    # (stride for each dimension for more flexibility)
+    if type(stride_size) not in (tuple, list):
+        stride_size = [
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+            (stride_size, stride_size, stride_size,),
+        ]
+    else:
+        stride_size = list(stride_size)
+
+    if len(stride_size) != 4:
+        print('Error: stride_size length must be exactly 4')
+        return None
+
+    for i in range(len(stride_size)):
+        if type(stride_size[i]) not in (tuple, list):
+            stride_size[i] = (stride_size[i], stride_size[i], stride_size[i])
+
     if input_tensor is not None:
         inputs = utils.layer_utils.get_source_inputs(input_tensor)
     else:
@@ -437,7 +458,7 @@ def ConvNeXt(
             layers.Conv3D(
                 projection_dims[0],
                 kernel_size=4,
-                strides=4,
+                strides=stride_size[0],
                 name=model_name + "_stem_conv",
             ),
             layers.LayerNormalization(
@@ -462,7 +483,7 @@ def ConvNeXt(
                 layers.Conv3D(
                     projection_dims[i + 1],
                     kernel_size=2,
-                    strides=2,
+                    strides=stride_size[i + 1],
                     name=model_name + "_downsampling_conv_" + str(i),
                 ),
             ],
