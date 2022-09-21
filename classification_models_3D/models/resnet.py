@@ -175,6 +175,7 @@ def ResNet(
         input_shape=None,
         input_tensor=None,
         include_top=False,
+        pooling=None,
         classes=1000,
         stride_size=2,
         init_filters=64,
@@ -317,6 +318,11 @@ def ResNet(
         x = layers.GlobalAveragePooling3D(name='pool1')(x)
         x = layers.Dense(classes, name='fc1')(x)
         x = layers.Activation('softmax', name='softmax')(x)
+    else:
+        if pooling == 'avg':
+            x = layers.GlobalAveragePooling3D(name='avg_pool')(x)
+        elif pooling == 'max':
+            x = layers.GlobalMaxPooling3D(name='max_pool')(x)
 
     # Ensure that the model takes into account any potential predecessors of `input_tensor`.
     if input_tensor is not None:
