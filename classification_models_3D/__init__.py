@@ -1,4 +1,4 @@
-import keras_applications as ka
+from keras import applications as ka
 from .__version__ import __version__
 
 
