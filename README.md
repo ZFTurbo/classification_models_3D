@@ -27,7 +27,7 @@ This repository is based on great [classification_models](https://github.com/qub
 
 ### Examples 
 
-##### Loading model with `imagenet` weights:
+#### Loading model with `imagenet` weights:
 
 ```python
 
@@ -37,11 +37,15 @@ ResNet18, preprocess_input = Classifiers.get('resnet18')
 model = ResNet18(input_shape=(128, 128, 128, 3), weights='imagenet')
 ```
 
-More examples:
+#### Create model examples:
 - [tst_tfkeras.py](tst_tfkeras.py)
 - [tst_tfkeras_special_cases.py](tst_tfkeras_special_cases.py)
 
-All possible nets for `Classifiers.get()` method: `'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50',
+#### Training example:
+- [training_example.py](training_example.py)
+
+#### All possible nets for `Classifiers.get()` method: 
+`'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50',
         'seresnet101', 'seresnet152', 'seresnext50', 'seresnext101', 'senet154', 'resnext50', 'resnext101',
         'vgg16', 'vgg19', 'densenet121', 'densenet169', 'densenet201', 'mobilenet', 'mobilenetv2',
         'inceptionresnetv2', 'inceptionv3',  'efficientnetb0', 'efficientnetb1', 'efficientnetb2', 'efficientnetb3',
