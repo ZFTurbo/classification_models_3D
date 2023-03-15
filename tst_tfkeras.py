@@ -64,21 +64,12 @@ def tst_keras():
         'efficientnetv2-b1', 'efficientnetv2-b2', 'efficientnetv2-b3', 'efficientnetv2-s', 'efficientnetv2-m',
         'efficientnetv2-l', 'convnext_tiny', 'convnext_small', 'convnext_base', 'convnext_large', 'convnext_xlarge'
     ]
-    list_of_models = [
-        'convnext_tiny'
-    ]
     for type in list_of_models:
         modelPoint, preprocess_input = Classifiers.get(type)
         model = modelPoint(
             input_shape=(128, 128, 128, 3),
             include_top=include_top,
-            stride_size=(
-                (2, 2, 2),
-                (2, 2, 2),
-                (2, 2, 2),
-                (2, 2, 2),
-                (2, 2, 2),
-            ),
+            stride_size=2,
             weights=use_weights
         )
         print(model.summary())
