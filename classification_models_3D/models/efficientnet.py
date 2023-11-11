@@ -228,7 +228,7 @@ def EfficientNet(
         classes=1000,
         stride_size=2,
         classifier_activation='softmax',
-        **kwargs,
+        **kwargs
 ):
     """Instantiates the EfficientNet architecture using given scaling coefficients.
 

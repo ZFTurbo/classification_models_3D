@@ -5,22 +5,22 @@ __author__ = 'ZFTurbo: https://kaggle.com/zfturbo'
 if __name__ == '__main__':
     import os
 
-    gpu_use = 0
+    gpu_use = 4
     print('GPU use: {}'.format(gpu_use))
     os.environ["KERAS_BACKEND"] = "tensorflow"
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(gpu_use)
 
 
-from classification_models_3D.keras import Classifiers
+from classification_models_3D.tfkeras import Classifiers
 import numpy as np
 import random
 import matplotlib.pyplot as plt
 from skimage import measure
-from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, EarlyStopping
-from keras import backend as K
-from keras.layers import Dropout, Dense, Activation, GlobalAveragePooling3D
-from keras.models import Model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, EarlyStopping
+from tensorflow.keras import backend as K
+from tensorflow.keras.layers import Dropout, Dense, Activation, GlobalAveragePooling3D
+from tensorflow.keras.models import Model
 
 
 def get_model_memory_usage(batch_size, model):
