@@ -32,8 +32,8 @@ from keras import backend
 from keras import layers
 from keras import utils
 from keras.applications import imagenet_utils
-from keras.engine import sequential
-from keras.engine import training as training_lib
+from tensorflow.python.keras.engine import sequential
+from tensorflow.python.keras.engine import training as training_lib
 
 # isort: off
 from tensorflow.python.util.tf_export import keras_export
