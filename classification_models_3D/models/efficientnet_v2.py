@@ -30,9 +30,9 @@ from ..weights import load_model_weights
 from keras import backend
 from keras import layers
 from keras.applications import imagenet_utils
-from keras.engine import training
-from keras.utils import data_utils
-from keras.utils import layer_utils
+from tensorflow.python.keras.engine import training
+from tensorflow.python.keras.utils import data_utils
+from tensorflow.python.keras.utils import layer_utils
 import tensorflow.compat.v2 as tf
 from ..models._DepthwiseConv3D import DepthwiseConv3D
 
