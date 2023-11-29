@@ -11,16 +11,16 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(gpu_use)
 
 
-from classification_models_3D.tfkeras import Classifiers
+from classification_models_3D.keras import Classifiers
 import numpy as np
 import random
 import matplotlib.pyplot as plt
 from skimage import measure
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, EarlyStopping
-from tensorflow.keras import backend as K
-from tensorflow.keras.layers import Dropout, Dense, Activation, GlobalAveragePooling3D
-from tensorflow.keras.models import Model
+from keras.optimizers import Adam
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, EarlyStopping
+from keras import backend as K
+from keras.layers import Dropout, Dense, Activation, GlobalAveragePooling3D
+from keras.models import Model
 
 
 def get_model_memory_usage(batch_size, model):
@@ -182,7 +182,7 @@ def batch_generator(batch_size, preprocess_input):
 def train_model_example():
     use_weights = 'imagenet'
     shape_size = (96, 96, 96, 3)
-    backbone = 'resnet18'
+    backbone = 'efficientnetb0'
     num_classes = 2
     batch_size_train = 12
     batch_size_valid = 12

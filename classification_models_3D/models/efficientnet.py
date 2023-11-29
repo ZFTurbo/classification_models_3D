@@ -30,10 +30,10 @@ import copy
 import math
 
 from keras.applications import imagenet_utils
-from tensorflow.python.keras.engine import training
-from tensorflow.python.keras.layers import VersionAwareLayers
-from tensorflow.python.keras.utils import data_utils
-from tensorflow.python.keras.utils import layer_utils
+from keras.src.engine import training
+from keras.src.layers import VersionAwareLayers
+from keras.src.utils import data_utils
+from keras.src.utils import layer_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
 
 

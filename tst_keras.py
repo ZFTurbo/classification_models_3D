@@ -5,7 +5,7 @@ __author__ = 'ZFTurbo: https://kaggle.com/zfturbo'
 if __name__ == '__main__':
     import os
 
-    gpu_use = 1
+    gpu_use = 4
     print('GPU use: {}'.format(gpu_use))
     os.environ["KERAS_BACKEND"] = "tensorflow"
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(gpu_use)
@@ -17,9 +17,11 @@ def tst_keras():
     from keras import backend as K
     from classification_models_3D.keras import Classifiers
 
+
     print('Keras version: {}'.format(__version__))
     include_top = False
-    use_weights = 'imagenet'
+    # use_weights = 'imagenet'
+    use_weights = None
     list_of_models = [
         'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50',
         'seresnet101', 'seresnet152', 'seresnext50', 'seresnext101', 'senet154', 'resnext50', 'resnext101',
