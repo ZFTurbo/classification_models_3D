@@ -15,7 +15,7 @@ def tst_keras():
     # for keras
     from keras import __version__
     from keras import backend as K
-    from classification_models_3D.keras import Classifiers
+    from classification_models_3D.kkeras import Classifiers
 
 
     print('Keras version: {}'.format(__version__))

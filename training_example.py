@@ -11,7 +11,7 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(gpu_use)
 
 
-from classification_models_3D.keras import Classifiers
+from classification_models_3D.kkeras import Classifiers
 import numpy as np
 import random
 import matplotlib.pyplot as plt

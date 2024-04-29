@@ -19,7 +19,7 @@ except:
     # keras
     from keras import backend as K
     from classification_models.keras import Classifiers as Classifiers_2D
-    from classification_models_3D.keras import Classifiers as Classifiers_3D
+    from classification_models_3D.kkeras import Classifiers as Classifiers_3D
     print('Use keras...')
 
 import os
