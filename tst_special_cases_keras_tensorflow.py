@@ -3,17 +3,23 @@ __author__ = 'ZFTurbo: https://kaggle.com/zfturbo'
 
 
 if __name__ == '__main__':
+    import sys
     import os
 
-    gpu_use = 4
-    print('GPU use: {}'.format(gpu_use))
+    # For this test, make sure that only the tested framework is available
+    sys.modules['jax'] = None
+    sys.modules['torch'] = None
+
+    gpu_use = 0
+    print(f"GPU use: {gpu_use}")
     os.environ["KERAS_BACKEND"] = "tensorflow"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(gpu_use)
+    os.environ["CUDA_VISIBLE_DEVICES"] = f"{gpu_use}"
 
 
 def get_model_memory_usage(batch_size, model):
     import numpy as np
     from keras import backend as K
+    from keras.src.utils import summary_utils
 
     shapes_mem_count = 0
     internal_model_mem_count = 0
@@ -22,7 +28,7 @@ def get_model_memory_usage(batch_size, model):
         if layer_type == 'Model':
             internal_model_mem_count += get_model_memory_usage(batch_size, l)
         single_layer_mem = 1
-        out_shape = l.output_shape
+        out_shape = l.output.shape
         if type(out_shape) is list:
             out_shape = out_shape[0]
         for s in out_shape:
@@ -31,8 +37,8 @@ def get_model_memory_usage(batch_size, model):
             single_layer_mem *= s
         shapes_mem_count += single_layer_mem
 
-    trainable_count = np.sum([K.count_params(p) for p in model.trainable_weights])
-    non_trainable_count = np.sum([K.count_params(p) for p in model.non_trainable_weights])
+    trainable_count = summary_utils.count_params(model.trainable_weights)
+    non_trainable_count = summary_utils.count_params(model.non_trainable_weights)
 
     number_size = 4.0
     if K.floatx() == 'float16':
@@ -46,16 +52,16 @@ def get_model_memory_usage(batch_size, model):
 
 
 def tst_keras():
-    # for tensorflow.keras
-    from tensorflow import __version__
-    from tensorflow.compat.v1 import reset_default_graph
-    from classification_models_3D.tfkeras import Classifiers
+    # for keras
+    from keras import __version__
+    from keras import backend as K
+    from classification_models_3D.kkeras import Classifiers
 
-    print('Tensorflow version: {}'.format(__version__))
+    print(f"Keras version {__version__} using {K.backend()} backend")
     if 1:
         type = 'densenet121'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(128, 128, 128, 2),
             include_top=False,
@@ -66,12 +72,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'efficientnetb0'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(128, 128, 128, 2),
             include_top=False,
@@ -80,12 +86,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'efficientnetv2-b0'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(128, 128, 128, 2),
             include_top=False,
@@ -94,12 +100,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'inceptionresnetv2'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(299, 299, 299, 3),
             include_top=False,
@@ -108,12 +114,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'inceptionv3'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(299, 299, 299, 3),
             include_top=False,
@@ -122,12 +128,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'mobilenet'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(224, 224, 224, 3),
             include_top=False,
@@ -136,12 +142,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'mobilenetv2'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(224, 224, 224, 3),
             include_top=False,
@@ -150,12 +156,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'resnet18'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(256, 256, 256, 3),
             include_top=False,
@@ -166,12 +172,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'resnext50'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(256, 256, 256, 3),
             include_top=False,
@@ -182,12 +188,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'seresnet101'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(224, 224, 224, 3),
             include_top=False,
@@ -198,12 +204,12 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
     if 1:
         type = 'vgg16'
-        print('Go for {}'.format(type))
-        modelPoint, preprocess_input = Classifiers.get(type)
+        print(f"Go for {type}")
+        modelPoint, _ = Classifiers.get(type)
         model = modelPoint(
             input_shape=(256, 256, 256, 3),
             include_top=False,
@@ -215,7 +221,7 @@ def tst_keras():
         )
         print(model.summary())
         print(get_model_memory_usage(1, model), 'GB')
-        reset_default_graph()
+        K.clear_session()
 
 
 if __name__ == '__main__':
