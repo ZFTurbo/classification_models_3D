@@ -3,12 +3,17 @@ __author__ = 'ZFTurbo: https://kaggle.com/zfturbo'
 
 
 if __name__ == '__main__':
+    import sys
     import os
 
+    # For this test, make sure that only the tested framework is available
+    sys.modules['jax'] = None
+    sys.modules['torch'] = None
+
     gpu_use = 0
-    print('GPU use: {}'.format(gpu_use))
+    print(f"GPU use: {gpu_use}")
     os.environ["KERAS_BACKEND"] = "tensorflow"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(gpu_use)
+    os.environ["CUDA_VISIBLE_DEVICES"] = f"{gpu_use}"
 
 
 from classification_models_3D.kkeras import Classifiers
@@ -21,6 +26,7 @@ from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, CSVLogger, Early
 from keras import backend as K
 from keras.layers import Dropout, Dense, Activation, GlobalAveragePooling3D
 from keras.models import Model
+from keras.src.utils import summary_utils
 
 
 def get_model_memory_usage(batch_size, model):
@@ -31,7 +37,7 @@ def get_model_memory_usage(batch_size, model):
         if layer_type == 'Model' or layer_type == 'Functional':
             internal_model_mem_count += get_model_memory_usage(batch_size, l)
         single_layer_mem = 1
-        out_shape = l.output_shape
+        out_shape = l.output.shape
         if type(out_shape) is list:
             out_shape = out_shape[0]
         for s in out_shape:
@@ -40,8 +46,8 @@ def get_model_memory_usage(batch_size, model):
             single_layer_mem *= s
         shapes_mem_count += single_layer_mem
 
-    trainable_count = np.sum([K.count_params(p) for p in model.trainable_weights])
-    non_trainable_count = np.sum([K.count_params(p) for p in model.non_trainable_weights])
+    trainable_count = summary_utils.count_params(model.trainable_weights)
+    non_trainable_count = summary_utils.count_params(model.non_trainable_weights)
 
     number_size = 4.0
     if K.floatx() == 'float16':
@@ -211,10 +217,10 @@ def train_model_example():
     optim = Adam(learning_rate=learning_rate)
 
     loss_to_use = 'binary_crossentropy'
-    model.compile(optimizer=optim, loss=loss_to_use, metrics='acc')
+    model.compile(optimizer=optim, loss=loss_to_use, metrics=['acc',])
 
-    cache_model_path = '{}_temp.h5'.format(backbone)
-    best_model_path = '{}'.format(backbone) + '-{val_loss:.4f}-{epoch:02d}.h5'
+    cache_model_path = '{}_temp.keras'.format(backbone)
+    best_model_path = '{}'.format(backbone) + '-{val_loss:.4f}-{epoch:02d}.keras'
     callbacks = [
         ModelCheckpoint(cache_model_path, monitor='val_loss', verbose=0),
         ModelCheckpoint(best_model_path, monitor='val_loss', verbose=0),
@@ -238,7 +244,6 @@ def train_model_example():
         validation_data=gen_valid,
         validation_steps=validation_steps,
         verbose=1,
-        max_queue_size=10,
         initial_epoch=0,
         callbacks=callbacks
     )
