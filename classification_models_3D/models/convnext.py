@@ -35,8 +35,6 @@ from keras import utils
 from keras.applications import imagenet_utils
 from keras import models
 
-# isort: off
-from tensorflow.python.util.tf_export import keras_export
 
 
 MODEL_CONFIGS = {

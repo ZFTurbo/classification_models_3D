@@ -31,8 +31,6 @@ from keras import backend
 from keras import layers
 from keras.applications import imagenet_utils
 from keras import models
-from keras.src.utils import data_utils
-from keras.src.utils import layer_utils
 from keras import initializers
 from keras.src.utils import file_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
