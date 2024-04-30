@@ -33,7 +33,7 @@ from keras.applications import imagenet_utils
 from keras import models
 from keras.src.utils import data_utils
 from keras.src.utils import layer_utils
-import tensorflow.compat.v2 as tf
+from keras import initializers
 from keras.src.utils import file_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
 
@@ -1030,7 +1030,7 @@ def EfficientNetV2(
             classes,
             activation=classifier_activation,
             kernel_initializer=DENSE_KERNEL_INITIALIZER,
-            bias_initializer=tf.constant_initializer(0),
+            bias_initializer=initializers.Constant(0),
             name="predictions")(x)
     else:
         if pooling == "avg":
