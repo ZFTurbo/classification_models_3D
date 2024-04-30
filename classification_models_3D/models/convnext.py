@@ -33,8 +33,7 @@ from keras import backend
 from keras import layers
 from keras import utils
 from keras.applications import imagenet_utils
-from keras.src.engine import sequential
-from keras.src.engine import training as training_lib
+from keras import models
 
 # isort: off
 from tensorflow.python.util.tf_export import keras_export
@@ -454,7 +453,7 @@ def ConvNeXt(
             x = PreStem(name=model_name)(x)
 
     # Stem block.
-    stem = sequential.Sequential(
+    stem = models.Sequential(
         [
             layers.Conv3D(
                 projection_dims[0],
@@ -475,7 +474,7 @@ def ConvNeXt(
 
     num_downsample_layers = 3
     for i in range(num_downsample_layers):
-        downsample_layer = sequential.Sequential(
+        downsample_layer = models.Sequential(
             [
                 layers.LayerNormalization(
                     epsilon=1e-6,
@@ -525,7 +524,7 @@ def ConvNeXt(
             x = layers.GlobalMaxPooling3D()(x)
         x = layers.LayerNormalization(epsilon=1e-6)(x)
 
-    model = training_lib.Model(inputs=inputs, outputs=x, name=model_name)
+    model = models.Model(inputs=inputs, outputs=x, name=model_name)
 
     # Load weights.
     if weights:

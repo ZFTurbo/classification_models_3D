@@ -30,7 +30,7 @@ import copy
 import math
 
 from keras.applications import imagenet_utils
-from keras.src.engine import training
+from keras import models
 from keras.src.layers import VersionAwareLayers
 from keras.src.utils import data_utils
 from keras.src.utils import layer_utils
@@ -425,7 +425,7 @@ def EfficientNet(
         inputs = img_input
 
     # Create model.
-    model = training.Model(inputs, x, name=model_name)
+    model = models.Model(inputs, x, name=model_name)
 
     # Load weights.
     if weights:

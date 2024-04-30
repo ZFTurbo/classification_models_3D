@@ -30,7 +30,7 @@ from ..weights import load_model_weights
 from keras import backend
 from keras import layers
 from keras.applications import imagenet_utils
-from keras.src.engine import training
+from keras import models
 from keras.src.utils import data_utils
 from keras.src.utils import layer_utils
 import tensorflow.compat.v2 as tf
@@ -1046,7 +1046,7 @@ def EfficientNetV2(
         inputs = img_input
 
     # Create model.
-    model = training.Model(inputs, x, name=model_name)
+    model = models.Model(inputs, x, name=model_name)
 
     # Load weights.
     if weights:
