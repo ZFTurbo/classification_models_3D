@@ -32,7 +32,7 @@ import math
 from keras.applications import imagenet_utils
 from keras import models
 from keras import layers as klayers
-from keras.src.utils import layer_utils
+from keras.src.ops import operation_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
 from keras.src.legacy.backend import int_shape
 
@@ -419,7 +419,7 @@ def EfficientNet(
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
     if input_tensor is not None:
-        inputs = layer_utils.get_source_inputs(input_tensor)
+        inputs = operation_utils.get_source_inputs(input_tensor)
     else:
         inputs = img_input
 
