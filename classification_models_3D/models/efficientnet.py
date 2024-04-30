@@ -31,7 +31,7 @@ import math
 
 from keras.applications import imagenet_utils
 from keras import models
-from keras.src.layers import VersionAwareLayers
+from keras import layers as klayers
 from keras.src.utils import layer_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
 from keras.src.legacy.backend import int_shape
@@ -120,7 +120,7 @@ DENSE_KERNEL_INITIALIZER = {
     }
 }
 
-layers = VersionAwareLayers()
+layers = klayers
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
