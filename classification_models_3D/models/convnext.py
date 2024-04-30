@@ -24,7 +24,9 @@ References:
 
 import os
 import numpy as np
-import tensorflow.compat.v2 as tf
+import keras.ops as kops
+import keras.random as krandom
+from keras import Variable
 from keras.src.utils import file_utils
 
 from .. import get_submodules_from_kwargs
@@ -158,9 +160,9 @@ class StochasticDepth(layers.Layer):
     def call(self, x, training=None):
         if training:
             keep_prob = 1 - self.drop_path_rate
-            shape = (tf.shape(x)[0],) + (1,) * (len(tf.shape(x)) - 1)
-            random_tensor = keep_prob + tf.random.uniform(shape, 0, 1)
-            random_tensor = tf.floor(random_tensor)
+            shape = (kops.shape(x)[0],) + (1,) * (len(kops.shape(x)) - 1)
+            random_tensor = keep_prob + krandom.uniform(shape, 0, 1)
+            random_tensor = kops.floor(random_tensor)
             return (x / keep_prob) * random_tensor
         return x
 
@@ -191,8 +193,8 @@ class LayerScale(layers.Layer):
         self.projection_dim = projection_dim
 
     def build(self, input_shape):
-        self.gamma = tf.Variable(
-            self.init_values * tf.ones((self.projection_dim,))
+        self.gamma = Variable(
+            self.init_values * kops.ones((self.projection_dim,))
         )
 
     def call(self, x):
