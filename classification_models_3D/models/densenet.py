@@ -206,9 +206,9 @@ def DenseNet(
     bn_axis = 4 if backend.image_data_format() == 'channels_last' else 1
 
     x = layers.ZeroPadding3D(padding=((3, 3), (3, 3), (3, 3)))(img_input)
-    x = layers.Conv3D(64, 7, strides=stride_size[0], use_bias=False, name='conv1/conv')(x)
-    x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='conv1/bn')(x)
-    x = layers.Activation('relu', name='conv1/relu')(x)
+    x = layers.Conv3D(64, 7, strides=stride_size[0], use_bias=False, name='conv1_conv')(x)
+    x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='conv1_bn')(x)
+    x = layers.Activation('relu', name='conv1_relu')(x)
     x = layers.ZeroPadding3D(padding=((1, 1), (1, 1), (1, 1)))(x)
     pool = (stride_size[1][0] + 1, stride_size[1][1] + 1, stride_size[1][2] + 1)
     x = layers.MaxPooling3D(pool, strides=stride_size[1], name='pool1')(x)
