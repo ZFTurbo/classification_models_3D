@@ -88,8 +88,9 @@ class ModelsFactory:
     def models(self):
         return self._models
 
-    def models_names(self):
-        return list(self.models.keys())
+    @staticmethod
+    def models_names():
+        return list(ModelsFactory._models.keys())
 
     @staticmethod
     def get_kwargs():
