@@ -2,7 +2,6 @@
 
 import tensorflow as tf
 try:
-    from keras_applications import imagenet_utils
     from keras import backend as K
     from keras import initializers
     from keras import regularizers
