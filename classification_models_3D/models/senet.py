@@ -2,6 +2,7 @@ import os
 import collections
 
 from keras.applications import imagenet_utils
+from keras.src.legacy.backend import int_shape
 
 from classification_models_3D import get_submodules_from_kwargs
 from ._common_blocks import GroupConv3D, ChannelSE
@@ -35,7 +36,7 @@ def get_bn_params(**params):
 
 def get_num_channels(tensor):
     channels_axis = 4 if backend.image_data_format() == 'channels_last' else 1
-    return backend.int_shape(tensor)[channels_axis]
+    return int_shape(tensor)[channels_axis]
 
 
 # -------------------------------------------------------------------------

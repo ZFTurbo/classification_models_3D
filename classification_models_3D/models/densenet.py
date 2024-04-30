@@ -19,6 +19,7 @@ from __future__ import print_function
 import os
 from .. import get_submodules_from_kwargs
 from keras.applications import imagenet_utils
+from keras.src.legacy.backend import int_shape
 from keras_applications.imagenet_utils import decode_predictions
 from keras_applications.imagenet_utils import _obtain_input_shape
 from ..weights import load_model_weights
@@ -61,7 +62,7 @@ def transition_block(x, reduction, name, stride_size):
                                   name=name + '_bn')(x)
     x = layers.Activation('relu', name=name + '_relu')(x)
     x = layers.Conv3D(
-        int(backend.int_shape(x)[bn_axis] * reduction),
+        int(int_shape(x)[bn_axis] * reduction),
         1,
         use_bias=False,
         name=name + '_conv'

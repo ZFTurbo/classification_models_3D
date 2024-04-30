@@ -21,6 +21,7 @@ from __future__ import print_function
 import os
 from .. import get_submodules_from_kwargs
 from keras.applications import imagenet_utils
+from keras.src.legacy.backend import int_shape
 
 
 backend = None
@@ -153,14 +154,14 @@ def inception_resnet_block(x, scale, block_type, block_idx, activation='relu'):
     mixed = layers.Concatenate(
         axis=channel_axis, name=block_name + '_mixed')(branches)
     up = conv3d_bn(mixed,
-                   backend.int_shape(x)[channel_axis],
+                   int_shape(x)[channel_axis],
                    1,
                    activation=None,
                    use_bias=True,
                    name=block_name + '_conv')
 
     x = layers.Lambda(lambda inputs, scale: inputs[0] + inputs[1] * scale,
-                      output_shape=backend.int_shape(x)[1:],
+                      output_shape=int_shape(x)[1:],
                       arguments={'scale': scale},
                       name=block_name)([x, up])
     if activation is not None:
