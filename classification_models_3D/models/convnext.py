@@ -25,6 +25,7 @@ References:
 import os
 import numpy as np
 import tensorflow.compat.v2 as tf
+from keras.src.utils import file_utils
 
 from .. import get_submodules_from_kwargs
 from ..weights import load_model_weights
@@ -396,7 +397,7 @@ def ConvNeXt(
     global backend, layers, models, keras_utils
     backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
 
-    if not (weights in {"imagenet", None} or tf.io.gfile.exists(weights)):
+    if not (weights in {"imagenet", None} or file_utils.exists(weights)):
         raise ValueError(
             "The `weights` argument should be either "
             "`None` (random initialization), `imagenet` "

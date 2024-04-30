@@ -34,6 +34,7 @@ from keras.src.engine import training
 from keras.src.utils import data_utils
 from keras.src.utils import layer_utils
 import tensorflow.compat.v2 as tf
+from keras.src.utils import file_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
 
 
@@ -872,7 +873,7 @@ def EfficientNetV2(
     if blocks_args == "default":
         blocks_args = DEFAULT_BLOCKS_ARGS[model_name]
 
-    if not (weights in {"imagenet", None} or tf.io.gfile.exists(weights)):
+    if not (weights in {"imagenet", None} or file_utils.exists(weights)):
         raise ValueError("The `weights` argument should be either "
                          "`None` (random initialization), `imagenet` "
                          "(pre-training on ImageNet), "
