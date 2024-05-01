@@ -1,4 +1,4 @@
-# Classification models 3D Zoo - Keras and TF.Keras
+# Classification models 3D Zoo for Keras 3
 
 This repository contains 3D variants of popular classification CNN models like ResNets, DenseNets, VGG, etc for keras module. It also contains weights 
 obtained by converting ImageNet weights from the same 2D models. 
