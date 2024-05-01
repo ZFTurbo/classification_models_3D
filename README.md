@@ -1,6 +1,6 @@
 # Classification models 3D Zoo - Keras and TF.Keras
 
-This repository contains 3D variants of popular CNN models for classification like ResNets, DenseNets, VGG, etc. It also contains weights 
+This repository contains 3D variants of popular classification CNN models like ResNets, DenseNets, VGG, etc for keras module. It also contains weights 
 obtained by converting ImageNet weights from the same 2D models. 
 
 This repository is based on great [classification_models](https://github.com/qubvel/classification_models) repo by [@qubvel](https://github.com/qubvel/)
@@ -31,18 +31,25 @@ This repository is based on great [classification_models](https://github.com/qub
 
 ```python
 
-from classification_models_3D.tfkeras import Classifiers
+from classification_models_3D.kkeras import Classifiers
 
 ResNet18, preprocess_input = Classifiers.get('resnet18')
 model = ResNet18(input_shape=(128, 128, 128, 3), weights='imagenet')
 ```
 
 #### Create model examples:
-- [tst_tfkeras.py](tst_tfkeras.py)
-- [tst_tfkeras_special_cases.py](tst_tfkeras_special_cases.py)
+Keras 3 support different backends like: Tensorflow, Torch and Jax. Below you can find examples for different backends:
+- Tensorflow: [tst_keras_tensorflow.py](tst_keras_tensorflow.py)
+- Tensorflow: [tst_special_cases_keras_tensorflow.py](tst_special_cases_keras_tensorflow.py)
+- Torch: [tst_keras_torch.py](tst_keras_torch.py)
+- Torch: [tst_special_cases_keras_torch.py](tst_special_cases_keras_torch.py)
+- Jax: [tst_keras_jax.py](tst_keras_jax.py)
+- Jax: [tst_special_cases_keras_jax.py](tst_special_cases_keras_jax.py)
 
-#### Training example:
-- [training_example.py](training_example.py)
+#### Training examples:
+- Tensorflow: [training_example_keras_tensorflow.py](training_example_keras_tensorflow.py)
+- Torch: [training_example_keras_torch.py](training_example_keras_torch.py)
+- Jax: [training_example_keras_jax.py](training_example_keras_jax.py)
 
 #### All possible nets for `Classifiers.get()` method: 
 `'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152', 'seresnet18', 'seresnet34', 'seresnet50',
@@ -74,7 +81,7 @@ Default pooling/stride size for 3D models is set equal to 2. You can change it f
  `stride_size`. Example:
  
  ```python
-from classification_models_3D.tfkeras import Classifiers
+from classification_models_3D.kkeras import Classifiers
 
 ResNet18, preprocess_input = Classifiers.get('resnet18')
 model = ResNet18(
@@ -98,7 +105,7 @@ model = ResNet18(
 For example if you want to make more poolings overall. You can do it like that:
 
  ```python
-from classification_models_3D.tfkeras import Classifiers
+from classification_models_3D.kkeras import Classifiers
 
 ResNet18, preprocess_input = Classifiers.get('resnet18')
 model = ResNet18(
@@ -122,6 +129,12 @@ model = ResNet18(
 * [volumentations](https://github.com/ZFTurbo/volumentations) - 3D augmentations
 * [driven_data_repo](https://github.com/ZFTurbo/DrivenData-Alzheimer-Research-1st-place-solution) - code for training and inference on real dataset
  
+### Older versions
+
+Last version which supports Keras2 is 1.0.10
+
+`pip install classification-models-3D==1.0.10`
+
 ### Unresolved problems
 
 * There is no DepthwiseConv3D layer in keras, so repo used custom layer from [this repo](https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) by [@alexandrosstergiou]( https://github.com/alexandrosstergiou/keras-DepthwiseConv3D) which can be slower than native implementation. 
