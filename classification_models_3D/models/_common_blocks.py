@@ -1,4 +1,5 @@
 from classification_models_3D import get_submodules_from_kwargs
+from keras.src.legacy.backend import int_shape
 
 
 def slice_tensor(x, start, stop, axis):
@@ -50,7 +51,7 @@ def GroupConv3D(filters,
     slice_axis = 4 if backend.image_data_format() == 'channels_last' else 1
 
     def layer(input_tensor):
-        inp_ch = int(backend.int_shape(input_tensor)[-1] // groups)  # input grouped channels
+        inp_ch = int(int_shape(input_tensor)[-1] // groups)  # input grouped channels
         out_ch = int(filters // groups)  # output grouped channels
 
         blocks = []
@@ -99,7 +100,7 @@ def ChannelSE(reduction=16, **kwargs):
 
     def layer(input_tensor):
         # get number of channels/filters
-        channels = backend.int_shape(input_tensor)[channels_axis]
+        channels = int_shape(input_tensor)[channels_axis]
 
         x = input_tensor
 

@@ -1,5 +1,4 @@
 import functools
-import keras_applications as ka
 
 from .models import resnet as rn
 from .models import resnext as rx
@@ -88,8 +87,9 @@ class ModelsFactory:
     def models(self):
         return self._models
 
-    def models_names(self):
-        return list(self.models.keys())
+    @staticmethod
+    def models_names():
+        return list(ModelsFactory._models.keys())
 
     @staticmethod
     def get_kwargs():

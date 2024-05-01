@@ -24,7 +24,10 @@ References:
 
 import os
 import numpy as np
-import tensorflow.compat.v2 as tf
+import keras.ops as kops
+import keras.random as krandom
+from keras import Variable
+from keras.src.utils import file_utils
 
 from .. import get_submodules_from_kwargs
 from ..weights import load_model_weights
@@ -32,11 +35,8 @@ from keras import backend
 from keras import layers
 from keras import utils
 from keras.applications import imagenet_utils
-from keras.src.engine import sequential
-from keras.src.engine import training as training_lib
+from keras import models
 
-# isort: off
-from tensorflow.python.util.tf_export import keras_export
 
 
 MODEL_CONFIGS = {
@@ -160,9 +160,9 @@ class StochasticDepth(layers.Layer):
     def call(self, x, training=None):
         if training:
             keep_prob = 1 - self.drop_path_rate
-            shape = (tf.shape(x)[0],) + (1,) * (len(tf.shape(x)) - 1)
-            random_tensor = keep_prob + tf.random.uniform(shape, 0, 1)
-            random_tensor = tf.floor(random_tensor)
+            shape = (kops.shape(x)[0],) + (1,) * (len(kops.shape(x)) - 1)
+            random_tensor = keep_prob + krandom.uniform(shape, 0, 1)
+            random_tensor = kops.floor(random_tensor)
             return (x / keep_prob) * random_tensor
         return x
 
@@ -193,8 +193,8 @@ class LayerScale(layers.Layer):
         self.projection_dim = projection_dim
 
     def build(self, input_shape):
-        self.gamma = tf.Variable(
-            self.init_values * tf.ones((self.projection_dim,))
+        self.gamma = Variable(
+            self.init_values * kops.ones((self.projection_dim,))
         )
 
     def call(self, x):
@@ -396,7 +396,7 @@ def ConvNeXt(
     global backend, layers, models, keras_utils
     backend, layers, models, keras_utils = get_submodules_from_kwargs(kwargs)
 
-    if not (weights in {"imagenet", None} or tf.io.gfile.exists(weights)):
+    if not (weights in {"imagenet", None} or file_utils.exists(weights)):
         raise ValueError(
             "The `weights` argument should be either "
             "`None` (random initialization), `imagenet` "
@@ -453,7 +453,7 @@ def ConvNeXt(
             x = PreStem(name=model_name)(x)
 
     # Stem block.
-    stem = sequential.Sequential(
+    stem = models.Sequential(
         [
             layers.Conv3D(
                 projection_dims[0],
@@ -474,7 +474,7 @@ def ConvNeXt(
 
     num_downsample_layers = 3
     for i in range(num_downsample_layers):
-        downsample_layer = sequential.Sequential(
+        downsample_layer = models.Sequential(
             [
                 layers.LayerNormalization(
                     epsilon=1e-6,
@@ -524,7 +524,7 @@ def ConvNeXt(
             x = layers.GlobalMaxPooling3D()(x)
         x = layers.LayerNormalization(epsilon=1e-6)(x)
 
-    model = training_lib.Model(inputs=inputs, outputs=x, name=model_name)
+    model = models.Model(inputs=inputs, outputs=x, name=model_name)
 
     # Load weights.
     if weights:

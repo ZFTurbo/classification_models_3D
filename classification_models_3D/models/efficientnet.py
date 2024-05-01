@@ -23,18 +23,18 @@ Reference:
 
 from .. import get_submodules_from_kwargs
 from ..weights import load_model_weights
-import tensorflow.compat.v2 as tf
+from keras.src.utils import file_utils
 
 import os
 import copy
 import math
 
 from keras.applications import imagenet_utils
-from keras.src.engine import training
-from keras.src.layers import VersionAwareLayers
-from keras.src.utils import data_utils
-from keras.src.utils import layer_utils
+from keras import models
+from keras import layers as klayers
+from keras.src.ops import operation_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
+from keras.src.legacy.backend import int_shape
 
 
 DEFAULT_BLOCKS_ARGS = [{
@@ -120,7 +120,7 @@ DENSE_KERNEL_INITIALIZER = {
     }
 }
 
-layers = VersionAwareLayers()
+layers = klayers
 
 BASE_DOCSTRING = """Instantiates the {name} architecture.
 
@@ -195,7 +195,7 @@ def correct_pad_3d(inputs, kernel_size):
         A tuple.
       """
     img_dim = 2 if backend.image_data_format() == 'channels_first' else 1
-    input_size = backend.int_shape(inputs)[img_dim:(img_dim + 3)]
+    input_size = int_shape(inputs)[img_dim:(img_dim + 3)]
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size, kernel_size)
     if input_size[0] is None:
@@ -286,7 +286,7 @@ def EfficientNet(
     if blocks_args == 'default':
         blocks_args = DEFAULT_BLOCKS_ARGS
 
-    if not (weights in {'imagenet', None} or tf.io.gfile.exists(weights)):
+    if not (weights in {'imagenet', None} or file_utils.exists(weights)):
         raise ValueError('The `weights` argument should be either '
                          '`None` (random initialization), `imagenet` '
                          '(pre-training on ImageNet), '
@@ -419,12 +419,12 @@ def EfficientNet(
     # Ensure that the model takes into account
     # any potential predecessors of `input_tensor`.
     if input_tensor is not None:
-        inputs = layer_utils.get_source_inputs(input_tensor)
+        inputs = operation_utils.get_source_inputs(input_tensor)
     else:
         inputs = img_input
 
     # Create model.
-    model = training.Model(inputs, x, name=model_name)
+    model = models.Model(inputs, x, name=model_name)
 
     # Load weights.
     if weights:

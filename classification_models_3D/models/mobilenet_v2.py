@@ -80,7 +80,8 @@ import os
 import warnings
 from .. import get_submodules_from_kwargs
 from ..weights import load_model_weights
-from keras_applications import imagenet_utils
+from keras.applications import imagenet_utils
+from keras.src.legacy.backend import int_shape
 
 
 backend = None
@@ -129,7 +130,7 @@ def correct_pad(backend, inputs, kernel_size):
     """
 
     img_dim = 2 if backend.image_data_format() == 'channels_first' else 1
-    input_size = backend.int_shape(inputs)[img_dim:(img_dim + 3)]
+    input_size = int_shape(inputs)[img_dim:(img_dim + 3)]
 
     if isinstance(kernel_size, int):
         kernel_size = (kernel_size, kernel_size, kernel_size)
@@ -263,12 +264,12 @@ def MobileNetV2(
                                  'is not type input_tensor')
         if is_input_t_tensor:
             if backend.image_data_format == 'channels_first':
-                if backend.int_shape(input_tensor)[1] != input_shape[1]:
+                if int_shape(input_tensor)[1] != input_shape[1]:
                     raise ValueError('input_shape: ', input_shape,
                                      'and input_tensor: ', input_tensor,
                                      'do not meet the same shape requirements')
             else:
-                if backend.int_shape(input_tensor)[2] != input_shape[1]:
+                if int_shape(input_tensor)[2] != input_shape[1]:
                     raise ValueError('input_shape: ', input_shape,
                                      'and input_tensor: ', input_tensor,
                                      'do not meet the same shape requirements')
@@ -290,11 +291,11 @@ def MobileNetV2(
             default_size = 224
         elif input_shape is None and backend.is_keras_tensor(input_tensor):
             if backend.image_data_format() == 'channels_first':
-                rows = backend.int_shape(input_tensor)[2]
-                cols = backend.int_shape(input_tensor)[3]
+                rows = int_shape(input_tensor)[2]
+                cols = int_shape(input_tensor)[3]
             else:
-                rows = backend.int_shape(input_tensor)[1]
-                cols = backend.int_shape(input_tensor)[2]
+                rows = int_shape(input_tensor)[1]
+                cols = int_shape(input_tensor)[2]
 
             if rows == cols and rows in [96, 128, 160, 192, 224]:
                 default_size = rows
@@ -459,7 +460,7 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
 
     channel_axis = 1 if backend.image_data_format() == 'channels_first' else -1
 
-    in_channels = backend.int_shape(inputs)[channel_axis]
+    in_channels = int_shape(inputs)[channel_axis]
     pointwise_conv_filters = int(filters * alpha)
     pointwise_filters = _make_divisible(pointwise_conv_filters, 8)
     x = inputs

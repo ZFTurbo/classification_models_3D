@@ -30,10 +30,9 @@ from ..weights import load_model_weights
 from keras import backend
 from keras import layers
 from keras.applications import imagenet_utils
-from keras.src.engine import training
-from keras.src.utils import data_utils
-from keras.src.utils import layer_utils
-import tensorflow.compat.v2 as tf
+from keras import models
+from keras import initializers
+from keras.src.utils import file_utils
 from ..models._DepthwiseConv3D import DepthwiseConv3D
 
 
@@ -872,7 +871,7 @@ def EfficientNetV2(
     if blocks_args == "default":
         blocks_args = DEFAULT_BLOCKS_ARGS[model_name]
 
-    if not (weights in {"imagenet", None} or tf.io.gfile.exists(weights)):
+    if not (weights in {"imagenet", None} or file_utils.exists(weights)):
         raise ValueError("The `weights` argument should be either "
                          "`None` (random initialization), `imagenet` "
                          "(pre-training on ImageNet), "
@@ -1029,7 +1028,7 @@ def EfficientNetV2(
             classes,
             activation=classifier_activation,
             kernel_initializer=DENSE_KERNEL_INITIALIZER,
-            bias_initializer=tf.constant_initializer(0),
+            bias_initializer=initializers.Constant(0),
             name="predictions")(x)
     else:
         if pooling == "avg":
@@ -1045,7 +1044,7 @@ def EfficientNetV2(
         inputs = img_input
 
     # Create model.
-    model = training.Model(inputs, x, name=model_name)
+    model = models.Model(inputs, x, name=model_name)
 
     # Load weights.
     if weights:
