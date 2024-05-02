@@ -1,0 +1,5 @@
+-r requirements.txt
+torch>=2.1.0
+jax[cpu]>=0.4.20
+matplotlib
+scikit-image
